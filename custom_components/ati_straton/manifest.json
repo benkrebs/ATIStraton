@@ -1,0 +1,14 @@
+{
+  "domain": "ati_straton",
+  "name": "ATI Straton",
+  "codeowners": [
+    "@benkrebs"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/benkrebs/ATIStraton",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/benkrebs/ATIStraton/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

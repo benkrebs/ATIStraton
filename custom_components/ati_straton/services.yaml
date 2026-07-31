@@ -1,0 +1,32 @@
+set_color:
+  name: Farbe anpassen
+  description: >-
+    Ändert die spektrale Zusammensetzung einer Farbe. Die Werte gelten je Kanal
+    im Bereich 0–255. Nicht angegebene Kanäle bleiben unverändert.
+  fields:
+    device_id:
+      name: Gerät
+      description: Die ATI Straton, deren Farbe geändert werden soll.
+      required: true
+      selector:
+        device:
+          integration: ati_straton
+    color:
+      name: Farbe
+      description: >-
+        Name oder numerische Kennung der Farbe, etwa "Farbe D" oder 5. Die
+        verfügbaren Farben stehen in den Attributen des Sensors "Farben".
+      required: true
+      example: Farbe D
+      selector:
+        text:
+    values:
+      name: Kanalwerte
+      description: >-
+        Zuordnung von Kanalnamen zu Werten, etwa {"B": 255, "V": 180}.
+        Verfügbare Kanäle je nach Gerät, beim Straton Flex G2 153 sind es
+        W, V, RB, B, LC und R.
+      required: true
+      example: '{"B": 255, "V": 180, "LC": 120}'
+      selector:
+        object:

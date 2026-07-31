@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Nicht-öffentliche Daten -------------------------------------------------
+# Zugangsdaten, Geräteadressen und alles, was das eigene Netz beschreibt.
+# Für Entwicklungsskripte siehe .env.example.
+.env
+.env.*
+!.env.example
+*.local
+secrets.yaml
+cookies.txt
+device.json
+
+# Sicherungen des Gerätedokuments vor Schreibvorgängen.
+# Enthalten den persönlichen Tagesverlauf und gehören nicht ins Repo.
+backups/
+
+# Mitschnitte von Geräteverkehr. Können Session-Cookies und
+# Netzwerkkonfiguration enthalten (siehe Sicherheitsbefunde S-01/S-04).
+captures/
+*.har
+
+# Diese beiden Endpunkte liefern Geheimnisse im Klartext und dürfen
+# niemals als Fixture abgelegt werden.
+tests/fixtures/user.json
+tests/fixtures/network.json
+
+# macOS
+.DS_Store
