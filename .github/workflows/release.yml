@@ -1,0 +1,66 @@
+name: Release
+
+# Ein Release wird bewusst von Hand ausgelöst. Der Ablauf setzt die Version in
+# manifest.json, committet sie, taggt diesen Commit und veröffentlicht das
+# Release — in dieser Reihenfolge. Damit kann die Version im Tag nie von der
+# Version in manifest.json abweichen, was Home Assistant sonst beim Laden
+# bemängelt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version ohne führendes v, z. B. 0.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Version setzen, taggen und veröffentlichen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version prüfen
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'${{ inputs.version }}' ist keine gültige Version (erwartet: X.Y.Z)"
+            exit 1
+          fi
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} existiert bereits"
+            exit 1
+          fi
+
+      - name: Version in manifest.json setzen
+        run: |
+          manifest=custom_components/ati_straton/manifest.json
+          jq --arg v "${{ inputs.version }}" '.version = $v' "$manifest" > "$manifest.tmp"
+          mv "$manifest.tmp" "$manifest"
+          git diff --stat
+
+      - name: Committen und taggen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "manifest.json war bereits auf ${{ inputs.version }}"
+          else
+            git commit -am "Version ${{ inputs.version }}"
+            git push origin HEAD:main
+          fi
+          git tag -a "v${{ inputs.version }}" -m "Version ${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Release veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --generate-notes
