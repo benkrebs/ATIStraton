@@ -44,3 +44,11 @@ jobs:
         uses: hacs/action@main
         with:
           category: integration
+          # Die Brands-Prüfung verlangt Markenlogos im
+          # home-assistant/brands-Repository. Das wären die Marken von ATI, und
+          # deren Verwendung widerspräche der ausdrücklichen Feststellung, dass
+          # dieses Projekt nicht mit dem Hersteller verbunden ist. Sie ist nur
+          # für die Aufnahme in den HACS-Standardkatalog erforderlich; als
+          # benutzerdefiniertes Repository lässt sich die Integration ohne sie
+          # installieren.
+          ignore: brands
