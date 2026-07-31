@@ -214,6 +214,46 @@ data:
 Available colours and their current composition are attributes of the
 **Colours** sensor.
 
+#### Colour channels
+
+> [!IMPORTANT]
+> The keys under `values` are the **channel codes**, not the labels shown in the
+> device's web interface. The two differ in one place: channel **`LC`** is
+> displayed as **`C`**. The service expects `LC`.
+
+Which channels your fixture has depends on the model. Look them up in the
+`composition` attribute of the **Colours** sensor — those are exactly the keys
+the service accepts.
+
+Firmware 3.0.4 knows these channel codes:
+
+| Code | Displayed | Likely meaning |
+|---|---|---|
+| `W` | W | White |
+| `WW` | WW | Warm white |
+| `CW` | CW | Cool white |
+| `HW` | HW | White, further variant |
+| `B` | B | Blue |
+| `RB` | RB | Royal blue |
+| `RB-V` | RB-V | Royal blue / violet mix |
+| `V` | V | Violet |
+| `UV` | UV | Ultraviolet |
+| `LC` | **C** | Cyan |
+| `R` | R | Red |
+| `T5` | T5 | T5 fluorescent channel of the hybrid models |
+
+The **Displayed** column is read from the device's own language file and is
+therefore certain. The **meaning** is nowhere stated in the firmware — it is
+inferred from common aquarium lighting nomenclature and may differ on individual
+models.
+
+The test device (Straton Flex G2 153) has six of them:
+`W`, `V`, `RB`, `B`, `LC`, `R`.
+
+The firmware additionally knows the long forms `blue`, `green`, `royalblue`,
+`violett`, `violett405`, `violett425` and `white`. They do not appear in the test
+device's colour data and are probably not usable as keys.
+
 ### Enabling the temperature guard
 
 ```yaml

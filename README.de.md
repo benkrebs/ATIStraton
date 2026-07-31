@@ -218,6 +218,47 @@ data:
 Die verfügbaren Farben und ihre aktuelle Zusammensetzung stehen in den
 Attributen des Sensors **Farben**.
 
+#### Farbkanäle
+
+> [!IMPORTANT]
+> Als Schlüssel unter `values` gilt der **Kanalcode**, nicht die Beschriftung
+> aus der Geräteoberfläche. Beide weichen an einer Stelle voneinander ab:
+> Kanal **`LC`** wird in der Oberfläche als **`C`** angezeigt. Im Service muss
+> `LC` stehen.
+
+Welche Kanäle deine Leuchte besitzt, hängt vom Modell ab. Nachsehen kannst du im
+Attribut `composition` des Sensors **Farben** — dort stehen genau die Schlüssel,
+die auch der Service akzeptiert.
+
+Die Firmware 3.0.4 kennt diese Kanalcodes:
+
+| Code | Anzeige | Vermutete Bedeutung |
+|---|---|---|
+| `W` | W | Weiß |
+| `WW` | WW | Warmweiß |
+| `CW` | CW | Kaltweiß |
+| `HW` | HW | Weiß, weitere Variante |
+| `B` | B | Blau |
+| `RB` | RB | Royalblau |
+| `RB-V` | RB-V | Royalblau/Violett gemischt |
+| `V` | V | Violett |
+| `UV` | UV | Ultraviolett |
+| `LC` | **C** | Cyan |
+| `R` | R | Rot |
+| `T5` | T5 | T5-Leuchtstoffkanal der Hybrid-Modelle |
+
+Die Spalte **Anzeige** ist aus der Sprachdatei des Geräts ausgelesen und damit
+gesichert. Die **Bedeutung** hinterlegt die Firmware nirgends — sie ist aus der
+üblichen Benennung in der Aquaristik erschlossen und kann bei einzelnen Modellen
+abweichen.
+
+Auf dem Testgerät (Straton Flex G2 153) sind sechs davon vorhanden:
+`W`, `V`, `RB`, `B`, `LC`, `R`.
+
+Daneben kennt die Firmware die Langformen `blue`, `green`, `royalblue`,
+`violett`, `violett405`, `violett425` und `white`. Sie tauchen in den Farbdaten
+des Testgeräts nicht auf und sind als Schlüssel vermutlich nicht verwendbar.
+
 ### Temperaturwächter aktivieren
 
 ```yaml
