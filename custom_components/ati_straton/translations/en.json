@@ -110,7 +110,7 @@
         },
         "values": {
           "name": "Channel values",
-          "description": "Channel name to value, e.g. {\"B\": 255}."
+          "description": "Channel name to value, 0 to 255 each. Example: B: 255, V: 180"
         }
       }
     }

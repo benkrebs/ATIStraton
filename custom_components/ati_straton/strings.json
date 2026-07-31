@@ -110,7 +110,7 @@
         },
         "values": {
           "name": "Kanalwerte",
-          "description": "Kanalname zu Wert, z. B. {\"B\": 255}."
+          "description": "Kanalname zu Wert, je Kanal 0 bis 255. Beispiel: B: 255, V: 180"
         }
       }
     }

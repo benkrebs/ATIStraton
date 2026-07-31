@@ -1,0 +1,6 @@
+# Entwicklungsabhängigkeiten. Die Integration selbst kommt ohne externe
+# Pakete aus — siehe manifest.json, requirements ist dort leer.
+homeassistant
+pytest
+pytest-asyncio
+ruff

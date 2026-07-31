@@ -330,7 +330,7 @@ fixture on a separate IoT VLAN or WLAN.
 
 ```bash
 python3 -m venv .venv
-./.venv/bin/pip install pytest ruff homeassistant
+./.venv/bin/pip install -r requirements-dev.txt
 ./.venv/bin/python -m pytest tests/ -q
 ./.venv/bin/python -m ruff check custom_components tests
 ```
