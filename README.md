@@ -20,6 +20,7 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 > schedule, or harm the livestock that depends on it. You use it entirely at
 > your own risk.** See [Risks and warnings](#risks-and-warnings) before you
 > install anything.
+> The code is mostly AI generated. Help and improvements highly welcome.
 
 ---
 
