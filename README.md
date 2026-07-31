@@ -1,5 +1,7 @@
 # ATI Straton — Home Assistant Integration
 
+**Repository:** <https://github.com/benkrebs/ATIStraton>
+
 [Deutsche Fassung → README.de.md](README.de.md)
 
 Local Home Assistant integration for **ATI Straton** aquarium LED fixtures. No
@@ -28,6 +30,7 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - [Installation](#installation)
 - [Setup](#setup)
 - [Usage](#usage)
+- [How writes are kept safe](#how-writes-are-kept-safe)
 - [Risks and warnings](#risks-and-warnings)
 - [Device security findings](#device-security-findings)
 - [Known limitations](#known-limitations)
@@ -130,7 +133,7 @@ the same Python environment.
 ### Via HACS
 
 1. HACS → Integrations → ⋮ → **Custom repositories**
-2. Add this repository's URL, category **Integration**
+2. Add `https://github.com/benkrebs/ATIStraton` as URL, category **Integration**
 3. Install "ATI Straton", then restart Home Assistant
 
 ### Manually
@@ -157,8 +160,6 @@ Under **Configure** you can then adjust:
 |---|---|---|
 | Polling interval | 30 s | how often non-pushed values are refreshed |
 | **Maximum intensity** | 100 % | hard ceiling — clamps *every* change made through this integration |
-| Safety factor | 1.0 | additional reduction of the internal channel limits |
-| Allow schedule writes | off | opt-in for writing the daily curve |
 
 If you are unsure, lower **Maximum intensity** to whatever your tank normally
 runs at. It is the simplest protection against a mistaken automation.
@@ -229,6 +230,25 @@ Available colours and their current composition are attributes of the
 
 Set the cut-off **below** the device's own temperature limit (60 °C by default),
 otherwise two control loops fight each other.
+
+---
+
+## How writes are kept safe
+
+Every change goes through the same guarded path:
+
+| Layer | What it does |
+|---|---|
+| **Range validation** | Intensity must be `0…100`, colour channels `0…255`, integers only. Anything else is rejected before a request is built |
+| **Maximum intensity** | A configurable ceiling clamps *every* change made through this integration |
+| **Backup before each write** | The previous state is stored via Home Assistant's `Store` before anything is sent |
+| **Crash recovery** | If Home Assistant dies while the guard is engaged, the original curve is restored on the next start |
+| **Single writer** | Intensity and program selection are locked while the guard is active, so two writers never fight |
+| **Exact restore** | The guard works on a verbatim snapshot and writes it back unchanged, rather than recomputing from a formula |
+
+The last point matters: the device's own intensity formula normalises every
+control point, and real curves can contain points that deviate from it.
+Recomputing would silently alter them, so the guard never does.
 
 ---
 
@@ -314,7 +334,7 @@ python3 -m venv .venv
 ./.venv/bin/python -m ruff check custom_components tests
 ```
 
-126 tests run against recorded device data in `tests/fixtures/` and need **no
+86 tests run against recorded device data in `tests/fixtures/` and need **no
 hardware**. Expected values for intensity scaling and program loading were taken
 from a traffic capture of the original web interface, so the integration
 reproduces the device's own behaviour byte for byte.
@@ -353,3 +373,5 @@ If you are not comfortable with those terms, please do not install it.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+Issues and pull requests: <https://github.com/benkrebs/ATIStraton/issues>

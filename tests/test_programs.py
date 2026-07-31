@@ -139,14 +139,10 @@ class TestLoadPayload:
     def test_source_program_is_not_mutated(self, presettings: list[dict]) -> None:
         program = next(p for p in parse_programs(presettings) if p.id == 8)
         build_load_payload(program, 2, [1])
-        assert all(
-            not e.get("highlighted") for e in program.raw.get("intensities", [])
-        )
+        assert all(not e.get("highlighted") for e in program.raw.get("intensities", []))
 
     @pytest.mark.parametrize("bad", [-1, 3, 99])
-    def test_invalid_level_is_rejected(
-        self, presettings: list[dict], bad: int
-    ) -> None:
+    def test_invalid_level_is_rejected(self, presettings: list[dict], bad: int) -> None:
         program = next(p for p in parse_programs(presettings) if p.id == 8)
         with pytest.raises(ProgramError, match="Gewöhnungsstufe"):
             build_load_payload(program, bad, [1])
@@ -212,7 +208,12 @@ class TestColors:
             c for c in parse_colors(colors) if c.name == "Farbe A"
         )
         assert natural.composition == {
-            "V": 110, "RB": 60, "B": 111, "LC": 255, "W": 255, "R": 25
+            "V": 110,
+            "RB": 60,
+            "B": 111,
+            "LC": 255,
+            "W": 255,
+            "R": 25,
         }
 
     def test_update_changes_only_the_target(self, colors: list[dict]) -> None:
@@ -253,6 +254,7 @@ class TestColors:
     def test_full_range_is_allowed(self, colors: list[dict]) -> None:
         for value in (0, 255):
             updated = with_updated_color(colors, 5, {"W": value})
-            assert next(c for c in parse_colors(updated) if c.id == 5).composition[
-                "W"
-            ] == value
+            assert (
+                next(c for c in parse_colors(updated) if c.id == 5).composition["W"]
+                == value
+            )

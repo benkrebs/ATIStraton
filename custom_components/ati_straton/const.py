@@ -6,11 +6,11 @@ from typing import Final
 
 DOMAIN: Final = "ati_straton"
 
+CONF_SCAN_INTERVAL: Final = "scan_interval"
 DEFAULT_SCAN_INTERVAL: Final = 30
 MIN_SCAN_INTERVAL: Final = 5
+MAX_SCAN_INTERVAL: Final = 3600
 
-CONF_SAFETY_FACTOR: Final = "safety_factor"
-CONF_ALLOW_SCHEDULE_WRITES: Final = "allow_schedule_writes"
 CONF_MAX_INTENSITY: Final = "max_intensity"
 
 STORAGE_VERSION: Final = 1
@@ -19,9 +19,6 @@ STORAGE_VERSION: Final = 1
 # das die Zustandsmaschine und die Recorder-Datenbank fluten; Regeleingriffe des
 # Wächters werden davon unabhängig sofort durchgereicht.
 PUSH_THROTTLE_SECONDS: Final = 15.0
-
-# Physische Farbkanäle des Geräts, in der Sortierreihenfolge des Frontends.
-CHANNEL_NAMES: Final[tuple[str, ...]] = ("V", "RB", "B", "LC", "W", "R")
 
 # Endpunkte, die einmalig beim Start gelesen werden (statischer Bestand).
 STATIC_ENDPOINTS: Final[tuple[str, ...]] = (

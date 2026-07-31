@@ -16,10 +16,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import StratonApiClient
-from .const import CONF_MAX_INTENSITY, CONF_SAFETY_FACTOR, DEFAULT_SCAN_INTERVAL
+from .const import CONF_MAX_INTENSITY, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
 from .coordinator import StratonCoordinator
 from .intensity import MAX_INTENSITY
-from .limits import DEFAULT_SAFETY_FACTOR
 from .services import async_register_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,8 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: StratonConfigEntry) -> b
         hass,
         entry,
         client,
-        scan_interval=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL),
-        safety_factor=entry.options.get(CONF_SAFETY_FACTOR, DEFAULT_SAFETY_FACTOR),
+        scan_interval=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         max_intensity=entry.options.get(CONF_MAX_INTENSITY, MAX_INTENSITY),
     )
     await coordinator.async_config_entry_first_refresh()

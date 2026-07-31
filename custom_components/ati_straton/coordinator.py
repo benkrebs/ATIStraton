@@ -40,7 +40,6 @@ from .intensity import (
     rescaled_by_factor,
     scaled_timelines,
 )
-from .limits import ChannelLimits
 from .programs import (
     ColorPreset,
     Program,
@@ -116,15 +115,6 @@ class StratonData:
         return bool(self.info.get("adc"))
 
     @property
-    def channel_values(self) -> dict[str, int]:
-        """Aktuelle Kanalwerte aus ``/api/status``."""
-        return {
-            channel["name"]: channel.get("value", 0)
-            for channel in self.status.get("channels") or ()
-            if isinstance(channel.get("name"), str)
-        }
-
-    @property
     def preview_active(self) -> bool:
         return bool(self.status.get("isColorPreview"))
 
@@ -144,12 +134,6 @@ class StratonData:
         value = self.info.get("maxTemperature")
         return float(value) if isinstance(value, (int, float)) else None
 
-    def external_ids(self) -> list[str]:
-        """``<deviceId>:<spot._id>`` für alle Spots."""
-        return [
-            f"{self.device_id}:{spot['_id']}" for spot in self.spots if "_id" in spot
-        ]
-
 
 class StratonCoordinator(DataUpdateCoordinator[StratonData]):
     """Pollt das Gerät und nimmt Push-Updates des Socket-Clients entgegen."""
@@ -160,7 +144,6 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         entry: ConfigEntry,
         client: StratonApiClient,
         scan_interval: int,
-        safety_factor: float,
         max_intensity: float = MAX_INTENSITY,
         guardian_config: GuardianConfig | None = None,
     ) -> None:
@@ -172,9 +155,7 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
             config_entry=entry,
         )
         self.client = client
-        self._safety_factor = safety_factor
         self._static_loaded = False
-        self.limits = ChannelLimits()
         self.data = StratonData()
 
         self.socket: StratonSocketClient | None = None
@@ -232,7 +213,7 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         return data
 
     async def _load_static(self, data: StratonData) -> None:
-        """Einmaliger Abruf des statischen Bestands plus Ableitung der Grenzen."""
+        """Einmaliger Abruf des statischen Bestands."""
         mapping = {
             "info": "info",
             "version": "version",
@@ -252,11 +233,6 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
                 setattr(data, attribute, value)
 
         data.translations = await self.client.async_get_translations(self._language)
-
-        self.limits = ChannelLimits.from_device(
-            data.spots, data.colors, self._safety_factor
-        )
-        _LOGGER.debug("Abgeleitete Kanalgrenzen: %s", dict(self.limits.ceilings))
 
         # Startwerte der Temperaturen einmalig aus der Historie. /api/temperatures
         # liefert rund 78 kB und ist damit für das Polling-Intervall zu schwer
@@ -470,7 +446,7 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
                     "Der Temperaturwächter regelt gerade; Programm nicht änderbar"
                 )
             await self._async_backup(self.data.timelines)
-            loaded = await self.client.async_post("load-presettings", payload)
+            loaded = await self.client.async_post_root("load-presettings", payload)
             timelines = self._timelines_from(loaded)
             if timelines is None:
                 raise HomeAssistantError(

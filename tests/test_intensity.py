@@ -49,29 +49,69 @@ class TestScaling:
         """Reglerstellung 33 — Werte aus dem Mitschnitt der Oberfläche."""
         scaled = scaled_timelines(timelines, 33.0)
         assert node_values(scaled) == [
-            0.0, 0.0, 24.75, 29.7, 33.0, 32.17, 30.52, 30.52,
-            22.69, 30.52, 24.75, 18.56, 0.82, 0.82, 0.0, 0.0,
+            0.0,
+            0.0,
+            24.75,
+            29.7,
+            33.0,
+            32.17,
+            30.52,
+            30.52,
+            22.69,
+            30.52,
+            24.75,
+            18.56,
+            0.82,
+            0.82,
+            0.0,
+            0.0,
         ]
 
     def test_matches_the_ui_formula_at_49(self, timelines: list[dict]) -> None:
         scaled = scaled_timelines(timelines, 49.0)
         assert node_values(scaled) == [
-            0.0, 0.0, 36.75, 44.1, 49.0, 47.77, 45.33, 45.33,
-            33.69, 45.33, 36.75, 27.56, 1.23, 1.23, 0.0, 0.0,
+            0.0,
+            0.0,
+            36.75,
+            44.1,
+            49.0,
+            47.77,
+            45.33,
+            45.33,
+            33.69,
+            45.33,
+            36.75,
+            27.56,
+            1.23,
+            1.23,
+            0.0,
+            0.0,
         ]
 
     def test_matches_the_ui_formula_at_71(self, timelines: list[dict]) -> None:
         scaled = scaled_timelines(timelines, 71.0)
         assert node_values(scaled) == [
-            0.0, 0.0, 53.25, 63.9, 71.0, 69.22, 65.67, 65.67,
-            48.81, 65.67, 53.25, 39.94, 1.77, 1.77, 0.0, 0.0,
+            0.0,
+            0.0,
+            53.25,
+            63.9,
+            71.0,
+            69.22,
+            65.67,
+            65.67,
+            48.81,
+            65.67,
+            53.25,
+            39.94,
+            1.77,
+            1.77,
+            0.0,
+            0.0,
         ]
 
     def test_full_intensity_reproduces_value_org(self, timelines: list[dict]) -> None:
         scaled = scaled_timelines(timelines, max_value_org(timelines))
-        originals = [
-            float(n["valueOrg"]) for tl in timelines for n in tl["nodes"]
-        ]
+        originals = [float(n["valueOrg"]) for tl in timelines for n in tl["nodes"]]
         assert node_values(scaled) == originals
 
     def test_zero_intensity_turns_everything_off(self, timelines: list[dict]) -> None:
@@ -108,9 +148,7 @@ class TestScaling:
             scaled_timelines([{"nodes": [{"value": 10}]}], 50.0)
 
     def test_nodes_without_anchor_stay_untouched(self) -> None:
-        timelines = [
-            {"nodes": [{"value": 10, "valueOrg": 80}, {"value": 42}]}
-        ]
+        timelines = [{"nodes": [{"value": 10, "valueOrg": 80}, {"value": 42}]}]
         scaled = scaled_timelines(timelines, 40.0)
         assert scaled[0]["nodes"][0]["value"] == 40.0
         assert scaled[0]["nodes"][1]["value"] == 42
@@ -141,9 +179,7 @@ class TestFactorRescaling:
         for tl in reduced:
             for node in tl["nodes"]:
                 if node.get("valueOrg"):
-                    assert node["valueOrg"] == pytest.approx(
-                        float(node["valueOrg"])
-                    )
+                    assert node["valueOrg"] == pytest.approx(float(node["valueOrg"]))
 
     @pytest.mark.parametrize("bad", [-0.1, 1.1, 2.0])
     def test_invalid_factor_is_rejected(

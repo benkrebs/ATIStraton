@@ -18,15 +18,14 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import StratonApiClient, StratonAuthError, StratonConnectionError
 from .const import (
-    CONF_ALLOW_SCHEDULE_WRITES,
     CONF_MAX_INTENSITY,
-    CONF_SAFETY_FACTOR,
+    CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
 from .intensity import MAX_INTENSITY, MIN_INTENSITY
-from .limits import DEFAULT_SAFETY_FACTOR, MAX_SAFETY_FACTOR, MIN_SAFETY_FACTOR
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,7 +121,7 @@ class StratonConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class StratonOptionsFlow(OptionsFlow):
-    """Polling-Intervall, Sicherheitsfaktor und Opt-in für Zeitplan-Schreiben."""
+    """Abfrageintervall und Obergrenze der Intensität."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -134,15 +133,10 @@ class StratonOptionsFlow(OptionsFlow):
         schema = vol.Schema(
             {
                 vol.Required(
-                    "scan_interval",
-                    default=options.get("scan_interval", DEFAULT_SCAN_INTERVAL),
-                ): vol.All(int, vol.Range(min=MIN_SCAN_INTERVAL, max=3600)),
-                vol.Required(
-                    CONF_SAFETY_FACTOR,
-                    default=options.get(CONF_SAFETY_FACTOR, DEFAULT_SAFETY_FACTOR),
+                    CONF_SCAN_INTERVAL,
+                    default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                 ): vol.All(
-                    vol.Coerce(float),
-                    vol.Range(min=MIN_SAFETY_FACTOR, max=MAX_SAFETY_FACTOR),
+                    int, vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL)
                 ),
                 vol.Required(
                     CONF_MAX_INTENSITY,
@@ -151,10 +145,6 @@ class StratonOptionsFlow(OptionsFlow):
                     vol.Coerce(float),
                     vol.Range(min=MIN_INTENSITY, max=MAX_INTENSITY),
                 ),
-                vol.Required(
-                    CONF_ALLOW_SCHEDULE_WRITES,
-                    default=options.get(CONF_ALLOW_SCHEDULE_WRITES, False),
-                ): bool,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

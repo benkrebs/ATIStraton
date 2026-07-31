@@ -29,13 +29,11 @@ async def async_get_config_entry_diagnostics(
     return {
         "entry": async_redact_data(dict(entry.data), TO_REDACT),
         "options": dict(entry.options),
-        "limits": {
-            "ceilings": dict(coordinator.limits.ceilings),
-            "safety_factor": coordinator.limits.safety_factor,
-            "effective": {
-                channel: coordinator.limits.effective_ceiling(channel)
-                for channel in coordinator.limits.channels
-            },
+        "mode": coordinator.mode.value,
+        "guard": {
+            "engaged": coordinator.guard_engaged,
+            "state": coordinator.guardian.state.value,
+            "reduction": coordinator.guardian.level,
         },
         "device": async_redact_data(
             {

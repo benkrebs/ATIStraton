@@ -25,9 +25,12 @@ SET_COLOR_SCHEMA = vol.Schema(
         vol.Required("device_id"): cv.string,
         vol.Required(ATTR_COLOR): vol.Any(cv.string, vol.Coerce(int)),
         vol.Required(ATTR_VALUES): vol.Schema(
-            {cv.string: vol.All(vol.Coerce(int), vol.Range(
-                min=MIN_CHANNEL_VALUE, max=MAX_CHANNEL_VALUE
-            ))}
+            {
+                cv.string: vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_CHANNEL_VALUE, max=MAX_CHANNEL_VALUE),
+                )
+            }
         ),
     }
 )

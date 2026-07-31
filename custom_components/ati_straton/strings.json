@@ -33,11 +33,9 @@
     "step": {
       "init": {
         "title": "Einstellungen",
-        "description": "Die maximale Intensität begrenzt jede Änderung über diese Integration. Der Sicherheitsfaktor senkt zusätzlich die Kanalgrenzen ab.",
+        "description": "Die maximale Intensität begrenzt jede Änderung über diese Integration.",
         "data": {
           "scan_interval": "Abfrageintervall (Sekunden)",
-          "safety_factor": "Sicherheitsfaktor (0.1 – 1.0)",
-          "allow_schedule_writes": "Schreiben des Tagesverlaufs erlauben (riskant)",
           "max_intensity": "Maximale Intensität (%)"
         }
       }

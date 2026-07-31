@@ -128,6 +128,14 @@ class StratonApiClient:
     async def async_post(self, endpoint: str, payload: Any) -> Any:
         return await self._request("POST", endpoint, payload)
 
+    async def async_post_root(self, path: str, payload: Any) -> Any:
+        """POST auf einen Pfad **außerhalb** von ``/api/``.
+
+        Das Gerät legt genau einen schreibenden Endpunkt in die Wurzel:
+        ``/load-presettings``. Ein Aufruf unter ``/api/`` quittiert es mit 404.
+        """
+        return await self._request("POST", path, payload, root=True)
+
     async def async_get_translations(self, language: str = "de_DE") -> dict[str, str]:
         """Lädt die Sprachdatei des Geräts.
 
@@ -155,7 +163,13 @@ class StratonApiClient:
         return await self._request("PUT", endpoint, payload)
 
     async def _request(
-        self, method: str, endpoint: str, payload: Any = None, *, _retry: bool = True
+        self,
+        method: str,
+        endpoint: str,
+        payload: Any = None,
+        *,
+        root: bool = False,
+        _retry: bool = True,
     ) -> Any:
         name = endpoint.strip("/")
         if name in FORBIDDEN_ENDPOINTS:
@@ -169,7 +183,7 @@ class StratonApiClient:
         if not self._logged_in:
             await self.async_login()
 
-        url = self._base / "api" / name
+        url = self._base / name if root else self._base / "api" / name
         try:
             async with self._session.request(
                 method,
@@ -185,7 +199,9 @@ class StratonApiClient:
                         )
                     _LOGGER.debug("Session abgelaufen bei %s, melde neu an", name)
                     await self.async_login()
-                    return await self._request(method, name, payload, _retry=False)
+                    return await self._request(
+                        method, name, payload, root=root, _retry=False
+                    )
 
                 if response.status >= 400:
                     raise StratonConnectionError(

@@ -59,7 +59,9 @@ SIO_ERROR = "4"
 CONNECT_TIMEOUT = 15.0
 
 # Optionaler Namespace und optionale Ack-Nummer vor der JSON-Nutzlast.
-_PACKET_PREFIX = re.compile(r"^(?P<namespace>/[^,]*,)?(?P<ack>\d+)?(?P<payload>[\[{].*)?$")
+_PACKET_PREFIX = re.compile(
+    r"^(?P<namespace>/[^,]*,)?(?P<ack>\d+)?(?P<payload>[\[{].*)?$"
+)
 
 EventHandler = Callable[..., Awaitable[None] | None]
 
@@ -71,7 +73,9 @@ class SocketIO2Error(Exception):
 class SocketIO2Client:
     """Schlanker Client für Socket.IO 2.x über WebSocket."""
 
-    def __init__(self, base_url: str, session: aiohttp.ClientSession | None = None) -> None:
+    def __init__(
+        self, base_url: str, session: aiohttp.ClientSession | None = None
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._session = session
         self._owns_session = session is None
@@ -85,9 +89,7 @@ class SocketIO2Client:
 
     @property
     def connected(self) -> bool:
-        return (
-            self._ws is not None and not self._ws.closed and self._connected.is_set()
-        )
+        return self._ws is not None and not self._ws.closed and self._connected.is_set()
 
     def on(self, event: str, handler: EventHandler) -> None:
         """Registriert einen Handler für ein Ereignis."""

@@ -1,5 +1,7 @@
 # ATI Straton — Home Assistant Integration
 
+**Repository:** <https://github.com/benkrebs/ATIStraton>
+
 [English version → README.md](README.md)
 
 Lokale Home-Assistant-Integration für **ATI Straton** Aquarien-LED-Leuchten. Ohne
@@ -29,6 +31,7 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - [Installation](#installation)
 - [Einrichtung](#einrichtung)
 - [Nutzung](#nutzung)
+- [Wie Schreibvorgänge abgesichert sind](#wie-schreibvorgänge-abgesichert-sind)
 - [Risiken und Warnhinweise](#risiken-und-warnhinweise)
 - [Sicherheitsbefunde am Gerät](#sicherheitsbefunde-am-gerät)
 - [Bekannte Einschränkungen](#bekannte-einschränkungen)
@@ -135,7 +138,7 @@ Python-Umgebung gefährden können.
 ### Über HACS
 
 1. HACS → Integrationen → ⋮ → **Benutzerdefinierte Repositories**
-2. URL dieses Repositories eintragen, Kategorie **Integration**
+2. `https://github.com/benkrebs/ATIStraton` als URL eintragen, Kategorie **Integration**
 3. „ATI Straton" installieren, Home Assistant neu starten
 
 ### Manuell
@@ -162,8 +165,6 @@ Unter **Konfigurieren** lassen sich anschließend einstellen:
 |---|---|---|
 | Abfrageintervall | 30 s | wie oft nicht gepushte Werte aktualisiert werden |
 | **Maximale Intensität** | 100 % | harte Obergrenze — klemmt *jede* Änderung über diese Integration |
-| Sicherheitsfaktor | 1.0 | zusätzliche Absenkung der internen Kanalgrenzen |
-| Schreiben des Tagesverlaufs | aus | Opt-in für das Schreiben der Tageskurve |
 
 Im Zweifel die **maximale Intensität** auf den Wert senken, mit dem das Becken
 normalerweise läuft. Das ist der einfachste Schutz gegen eine fehlerhafte
@@ -234,6 +235,26 @@ Attributen des Sensors **Farben**.
 
 Die Abregeltemperatur sollte **unterhalb** der geräteeigenen Grenze liegen (ab
 Werk 60 °C), sonst arbeiten zwei Regelungen gegeneinander.
+
+---
+
+## Wie Schreibvorgänge abgesichert sind
+
+Jede Änderung durchläuft denselben abgesicherten Pfad:
+
+| Ebene | Wirkung |
+|---|---|
+| **Bereichsprüfung** | Intensität `0…100`, Farbkanäle `0…255`, nur ganze Zahlen. Alles andere wird abgelehnt, bevor überhaupt ein Request gebaut wird |
+| **Maximale Intensität** | Eine einstellbare Obergrenze klemmt *jede* Änderung über diese Integration |
+| **Backup vor jedem Schreibvorgang** | Der Vorzustand wird über den `Store` von Home Assistant gesichert, bevor etwas gesendet wird |
+| **Absturzsicherung** | Stirbt Home Assistant, während der Wächter regelt, wird die ursprüngliche Kurve beim nächsten Start wiederhergestellt |
+| **Nur ein Schreiber** | Intensität und Programmauswahl sind gesperrt, solange der Wächter aktiv ist |
+| **Exakte Rücksetzung** | Der Wächter arbeitet auf einem wortgetreuen Schnappschuss und schreibt ihn unverändert zurück, statt aus einer Formel neu zu rechnen |
+
+Der letzte Punkt ist wesentlich: Die geräteeigene Intensitätsformel normalisiert
+jeden Stützpunkt, und reale Kurven können Punkte enthalten, die davon abweichen.
+Ein Neuberechnen würde diese stillschweigend verändern — der Wächter tut das
+deshalb nie.
 
 ---
 
@@ -323,7 +344,7 @@ python3 -m venv .venv
 ./.venv/bin/python -m ruff check custom_components tests
 ```
 
-126 Tests laufen gegen aufgezeichnete Gerätedaten in `tests/fixtures/` und
+86 Tests laufen gegen aufgezeichnete Gerätedaten in `tests/fixtures/` und
 benötigen **keine** Hardware. Die Erwartungswerte für Intensitätsskalierung und
 Programmladen stammen aus einem Verkehrsmitschnitt der Originaloberfläche, die
 Integration bildet das Geräteverhalten also Wert für Wert nach.
@@ -365,3 +386,5 @@ installieren.
 ## Lizenz
 
 MIT — siehe [LICENSE](LICENSE).
+
+Fehlerberichte und Beiträge: <https://github.com/benkrebs/ATIStraton/issues>

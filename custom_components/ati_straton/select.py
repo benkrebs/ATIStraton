@@ -132,9 +132,7 @@ class StratonProgramSelect(StratonEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         try:
-            await self.coordinator.async_load_program(
-                option, self._level_select.index
-            )
+            await self.coordinator.async_load_program(option, self._level_select.index)
         except ProgramError as err:
             raise HomeAssistantError(str(err)) from err
 
