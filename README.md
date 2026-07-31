@@ -247,8 +247,19 @@ therefore certain. The **meaning** is nowhere stated in the firmware — it is
 inferred from common aquarium lighting nomenclature and may differ on individual
 models.
 
-The test device (Straton Flex G2 153) has six of them:
-`W`, `V`, `RB`, `B`, `LC`, `R`.
+The test device (Straton Flex G2 153) has six of them. Top to bottom, in the
+order the sliders appear in the device's web interface:
+
+| Slider in the interface | Key for the service |
+|---|---|
+| V | `V` |
+| RB | `RB` |
+| B | `B` |
+| **C** | **`LC`** |
+| W | `W` |
+| R | `R` |
+
+The order comes from the device's `sort` field and is not alphabetical.
 
 The firmware additionally knows the long forms `blue`, `green`, `royalblue`,
 `violett`, `violett405`, `violett425` and `white`. They do not appear in the test

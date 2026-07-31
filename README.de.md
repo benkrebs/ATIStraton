@@ -252,8 +252,20 @@ gesichert. Die **Bedeutung** hinterlegt die Firmware nirgends — sie ist aus de
 üblichen Benennung in der Aquaristik erschlossen und kann bei einzelnen Modellen
 abweichen.
 
-Auf dem Testgerät (Straton Flex G2 153) sind sechs davon vorhanden:
-`W`, `V`, `RB`, `B`, `LC`, `R`.
+Auf dem Testgerät (Straton Flex G2 153) sind sechs davon vorhanden. Von oben
+nach unten, so wie die Regler in der Geräteoberfläche stehen:
+
+| Regler in der Oberfläche | Schlüssel für den Service |
+|---|---|
+| V | `V` |
+| RB | `RB` |
+| B | `B` |
+| **C** | **`LC`** |
+| W | `W` |
+| R | `R` |
+
+Die Reihenfolge ergibt sich aus dem Feld `sort` des Geräts und ist nicht
+alphabetisch.
 
 Daneben kennt die Firmware die Langformen `blue`, `green`, `royalblue`,
 `violett`, `violett405`, `violett425` und `white`. Sie tauchen in den Farbdaten
