@@ -23,6 +23,22 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=15)
 
 
+def create_cookie_jar() -> aiohttp.CookieJar:
+    """Cookie-Jar, der Cookies von IP-Adress-Hosts akzeptiert.
+
+    ``aiohttp`` verwirft Cookies von IP-Adressen stillschweigend, solange
+    ``unsafe`` nicht gesetzt ist — das Gerät wird aber typischerweise über seine
+    IP angesprochen. Ohne dieses Flag kommt der Login zwar durch (302 mit
+    ``Set-Cookie``), das Cookie landet jedoch nie im Jar, und jeder Folgeaufruf
+    scheitert an einer fehlenden Session.
+
+    **Jede** Session für dieses Gerät muss damit gebaut werden, auch die von
+    Home Assistant bereitgestellte: ``async_create_clientsession`` setzt keinen
+    eigenen Jar und erbt damit die restriktive Vorgabe von ``aiohttp``.
+    """
+    return aiohttp.CookieJar(unsafe=True)
+
+
 class StratonError(Exception):
     """Basisfehler der Geräteanbindung."""
 
@@ -51,11 +67,8 @@ class StratonApiClient:
         self._login_lock = asyncio.Lock()
         self._logged_in = False
         self._owns_session = session is None
-        # unsafe=True ist zwingend: aiohttp verwirft Cookies von IP-Adress-Hosts
-        # sonst stillschweigend, und das Gerät wird typischerweise über seine IP
-        # angesprochen. Ohne dieses Flag bliebe connect.sid wirkungslos.
         self._session = session or aiohttp.ClientSession(
-            cookie_jar=aiohttp.CookieJar(unsafe=True),
+            cookie_jar=create_cookie_jar(),
             timeout=DEFAULT_TIMEOUT,
         )
 
@@ -117,7 +130,15 @@ class StratonApiClient:
                 ) from err
 
             if not self.cookies:
-                raise StratonAuthError("Gerät hat kein Session-Cookie gesetzt")
+                # Die Anmeldung selbst war erfolgreich (302 auf /), das Cookie
+                # ist aber nicht im Jar gelandet. Praktisch immer ein Jar ohne
+                # unsafe=True — siehe create_cookie_jar().
+                raise StratonConnectionError(
+                    "Anmeldung war erfolgreich, das Session-Cookie wurde aber "
+                    "verworfen. Die verwendete aiohttp-Session braucht einen "
+                    "CookieJar(unsafe=True), sonst werden Cookies von "
+                    "IP-Adressen ignoriert."
+                )
             self._logged_in = True
             _LOGGER.debug("Anmeldung am Gerät %s erfolgreich", self._base)
 

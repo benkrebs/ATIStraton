@@ -1,0 +1,118 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ATI Straton verbinden",
+        "description": "Zugangsdaten der Weboberfläche des Geräts. Die Verbindung erfolgt unverschlüsselt über HTTP, da das Gerät kein TLS anbietet.",
+        "data": {
+          "host": "Host oder IP-Adresse",
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Erneut anmelden",
+        "description": "Die gespeicherten Zugangsdaten werden vom Gerät abgelehnt.",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Gerät nicht erreichbar.",
+      "invalid_auth": "Benutzername oder Passwort falsch.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieses Gerät ist bereits eingerichtet.",
+      "reauth_successful": "Erneute Anmeldung erfolgreich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Einstellungen",
+        "description": "Die maximale Intensität begrenzt jede Änderung über diese Integration.",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "max_intensity": "Maximale Intensität (%)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_adc": {
+        "name": "Stromaufnahme (Rohwert)"
+      },
+      "current_load": {
+        "name": "Auslastung"
+      },
+      "guard_state": {
+        "name": "Wächter-Zustand"
+      },
+      "guard_reduction": {
+        "name": "Wächter-Reduktion"
+      },
+      "mode": {
+        "name": "Betriebsmodus",
+        "state": {
+          "normal": "Normal",
+          "manual_intensity": "Manuelle Intensität",
+          "guard": "Temperaturwächter"
+        }
+      },
+      "colors": {
+        "name": "Farben"
+      }
+    },
+    "switch": {
+      "temperature_guard": {
+        "name": "Temperaturwächter"
+      }
+    },
+    "number": {
+      "guard_max_temp": {
+        "name": "Wächter Abregeltemperatur"
+      },
+      "guard_low_temp": {
+        "name": "Wächter Freigabetemperatur"
+      },
+      "guard_reduction_step": {
+        "name": "Wächter Reduktionsschritt"
+      },
+      "intensity": {
+        "name": "Intensität"
+      }
+    },
+    "select": {
+      "program": {
+        "name": "Lichtprogramm"
+      },
+      "acclimatisation": {
+        "name": "Gewöhnungsstufe"
+      }
+    }
+  },
+  "services": {
+    "set_color": {
+      "name": "Farbe anpassen",
+      "description": "Ändert die spektrale Zusammensetzung einer Farbe (0–255 je Kanal).",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Die ATI Straton."
+        },
+        "color": {
+          "name": "Farbe",
+          "description": "Name oder Kennung der Farbe."
+        },
+        "values": {
+          "name": "Kanalwerte",
+          "description": "Kanalname zu Wert, z. B. {\"B\": 255}."
+        }
+      }
+    }
+  }
+}

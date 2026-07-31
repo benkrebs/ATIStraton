@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .api import StratonApiClient
+from .api import StratonApiClient, create_cookie_jar
 from .const import CONF_MAX_INTENSITY, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
 from .coordinator import StratonCoordinator
 from .intensity import MAX_INTENSITY
@@ -40,7 +40,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: StratonConfigEntry) -> b
         entry.data[CONF_HOST],
         entry.data[CONF_USERNAME],
         entry.data[CONF_PASSWORD],
-        session=async_create_clientsession(hass),
+        session=async_create_clientsession(hass, cookie_jar=create_cookie_jar()),
     )
 
     coordinator = StratonCoordinator(

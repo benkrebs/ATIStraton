@@ -16,7 +16,12 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .api import StratonApiClient, StratonAuthError, StratonConnectionError
+from .api import (
+    StratonApiClient,
+    StratonAuthError,
+    StratonConnectionError,
+    create_cookie_jar,
+)
 from .const import (
     CONF_MAX_INTENSITY,
     CONF_SCAN_INTERVAL,
@@ -106,7 +111,9 @@ class StratonConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input[CONF_HOST],
             user_input[CONF_USERNAME],
             user_input[CONF_PASSWORD],
-            session=async_create_clientsession(self.hass),
+            session=async_create_clientsession(
+                self.hass, cookie_jar=create_cookie_jar()
+            ),
         )
         await client.async_login()
         info = await client.async_get("info")

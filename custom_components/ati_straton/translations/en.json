@@ -1,0 +1,118 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect ATI Straton",
+        "description": "Credentials of the fixture's web interface. The connection is unencrypted HTTP, because the device offers no TLS.",
+        "data": {
+          "host": "Host or IP address",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in again",
+        "description": "The stored credentials are being rejected by the device.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the device.",
+      "invalid_auth": "Wrong username or password.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This device is already set up.",
+      "reauth_successful": "Signed in again successfully."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Settings",
+        "description": "Maximum intensity limits every change made through this integration.",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "max_intensity": "Maximum intensity (%)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_adc": {
+        "name": "Power draw (raw)"
+      },
+      "current_load": {
+        "name": "Load"
+      },
+      "guard_state": {
+        "name": "Guard state"
+      },
+      "guard_reduction": {
+        "name": "Guard reduction"
+      },
+      "mode": {
+        "name": "Operating mode",
+        "state": {
+          "normal": "Normal",
+          "manual_intensity": "Manual intensity",
+          "guard": "Temperature guard"
+        }
+      },
+      "colors": {
+        "name": "Colours"
+      }
+    },
+    "switch": {
+      "temperature_guard": {
+        "name": "Temperature guard"
+      }
+    },
+    "number": {
+      "guard_max_temp": {
+        "name": "Guard cut-off temperature"
+      },
+      "guard_low_temp": {
+        "name": "Guard release temperature"
+      },
+      "guard_reduction_step": {
+        "name": "Guard reduction step"
+      },
+      "intensity": {
+        "name": "Intensity"
+      }
+    },
+    "select": {
+      "program": {
+        "name": "Light program"
+      },
+      "acclimatisation": {
+        "name": "Acclimatisation level"
+      }
+    }
+  },
+  "services": {
+    "set_color": {
+      "name": "Set colour",
+      "description": "Changes the spectral composition of a colour (0-255 per channel).",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The ATI Straton."
+        },
+        "color": {
+          "name": "Colour",
+          "description": "Name or id of the colour."
+        },
+        "values": {
+          "name": "Channel values",
+          "description": "Channel name to value, e.g. {\"B\": 255}."
+        }
+      }
+    }
+  }
+}
