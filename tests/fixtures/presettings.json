@@ -1,0 +1,306 @@
+[
+ {
+  "_id": 1,
+  "filename": "test.program.1.json",
+  "description": "PRESETTING_DESC_1",
+  "title": "PRESETTING_TITLE_1",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_1",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 2,
+  "filename": "test.program.2.json",
+  "description": "PRESETTING_DESC_2",
+  "title": "PRESETTING_TITLE_2",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_1",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 3,
+  "filename": "test.program.3.json",
+  "description": "PRESETTING_DESC_3",
+  "title": "PRESETTING_TITLE_3",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_1",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 4,
+  "filename": "test.program.4.json",
+  "description": "PRESETTING_DESC_4",
+  "title": "PRESETTING_TITLE_4",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_2",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 5,
+  "filename": "test.program.5.json",
+  "description": "PRESETTING_DESC_5",
+  "title": "PRESETTING_TITLE_5",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_2",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 6,
+  "filename": "test.program.6.json",
+  "description": "PRESETTING_DESC_6",
+  "title": "PRESETTING_TITLE_6",
+  "disabled": false,
+  "group": "PRESETTING_GROUP_2",
+  "timerange": {
+   "start": 32400,
+   "end": 79200
+  },
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ },
+ {
+  "_id": 10000,
+  "filename": "custom.presettings.10000.json",
+  "description": "PRESETTING_DESC_CUSTOM",
+  "title": "Eigenes Testprogramm",
+  "disabled": false,
+  "isCustom": true,
+  "intensities": [
+   {
+    "range": {
+     "min": -1,
+     "max": 40
+    },
+    "title": "PRESETTING_INTENSITY_1",
+    "description": "PRESETTING_INTENSITY_DESC_1",
+    "color": "#8CC152",
+    "preferred": 30
+   },
+   {
+    "range": {
+     "min": 40,
+     "max": 80
+    },
+    "title": "PRESETTING_INTENSITY_2",
+    "description": "PRESETTING_INTENSITY_DESC_2",
+    "color": "#F6BB42",
+    "preferred": 60
+   },
+   {
+    "range": {
+     "min": 80,
+     "max": 101
+    },
+    "title": "PRESETTING_INTENSITY_3",
+    "description": "PRESETTING_INTENSITY_DESC_3",
+    "color": "#E9573F",
+    "preferred": 90
+   }
+  ]
+ }
+]

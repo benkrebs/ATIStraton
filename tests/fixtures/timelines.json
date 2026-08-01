@@ -1,0 +1,949 @@
+[
+ {
+  "_id": 1,
+  "name": "GROUP_NAME_SEC",
+  "visible": true,
+  "active": true,
+  "linecolor": "#673AB7",
+  "colorEditable": true,
+  "presetting": {
+   "id": 3,
+   "title": "PRESETTING_TITLE_TEST"
+  },
+  "spotAddresses": [
+   1,
+   2
+  ],
+  "spots": [],
+  "nodes": [
+   {
+    "time": 0,
+    "value": 0.0,
+    "type": "first",
+    "index": 0,
+    "valueOrg": 0,
+    "color": {
+     "_id": 0,
+     "name": "Testfarbe 0",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 120,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 60,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 110,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 250,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 250,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 30,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 32400,
+    "value": 0.0,
+    "type": "node",
+    "index": 1,
+    "valueOrg": 0,
+    "color": {
+     "_id": 1,
+     "name": "Testfarbe 1",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 150,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 255,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 140,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 0,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 0,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 0,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 36000,
+    "value": 25.0,
+    "type": "node",
+    "index": 2,
+    "valueOrg": 40,
+    "color": {
+     "_id": 1,
+     "name": "Testfarbe 1",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 150,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 255,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 140,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 0,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 0,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 0,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 38460,
+    "value": 37.5,
+    "type": "node",
+    "index": 3,
+    "valueOrg": 60,
+    "color": {
+     "_id": 1,
+     "name": "Testfarbe 1",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 150,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 255,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 140,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 0,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 0,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 0,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 40500,
+    "value": 50.0,
+    "type": "node",
+    "index": 4,
+    "valueOrg": 80,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 43200,
+    "value": 43.75,
+    "type": "node",
+    "index": 5,
+    "valueOrg": 70,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 45000,
+    "value": 37.5,
+    "type": "node",
+    "index": 6,
+    "valueOrg": 60,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 53100,
+    "value": 37.5,
+    "type": "node",
+    "index": 7,
+    "valueOrg": 60,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 54000,
+    "value": 50.0,
+    "type": "node",
+    "index": 8,
+    "valueOrg": 50,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 55800,
+    "value": 37.5,
+    "type": "node",
+    "index": 9,
+    "valueOrg": 60,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 68880,
+    "value": 25.0,
+    "type": "node",
+    "index": 10,
+    "valueOrg": 40,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 72000,
+    "value": 30.0,
+    "type": "node",
+    "index": 11,
+    "valueOrg": 30,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 75600,
+    "value": 6.25,
+    "type": "node",
+    "index": 12,
+    "valueOrg": 10,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 79200,
+    "value": 6.25,
+    "type": "node",
+    "index": 13,
+    "valueOrg": 10,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 81000,
+    "value": 0.0,
+    "type": "node",
+    "index": 14,
+    "valueOrg": 0,
+    "color": {
+     "_id": 2,
+     "name": "Testfarbe 2",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 145,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 179,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 124,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 122,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 69,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 34,
+       "sort": 7
+      }
+     ]
+    }
+   },
+   {
+    "time": 86400,
+    "value": 0.0,
+    "type": "node",
+    "index": 15,
+    "valueOrg": 0,
+    "color": {
+     "_id": 0,
+     "name": "Testfarbe 0",
+     "disabled": false,
+     "visible": true,
+     "bgColor": "#404040",
+     "values": [
+      {
+       "id": 0,
+       "name": "V",
+       "label": "COLORNAME_V",
+       "value": 120,
+       "sort": 1
+      },
+      {
+       "id": 1,
+       "name": "RB",
+       "label": "COLORNAME_RB",
+       "value": 60,
+       "sort": 2
+      },
+      {
+       "id": 2,
+       "name": "B",
+       "label": "COLORNAME_B",
+       "value": 110,
+       "sort": 4
+      },
+      {
+       "id": 3,
+       "name": "LC",
+       "label": "COLORNAME_LC",
+       "value": 250,
+       "sort": 5
+      },
+      {
+       "id": 4,
+       "name": "W",
+       "label": "COLORNAME_W",
+       "value": 250,
+       "sort": 6
+      },
+      {
+       "id": 5,
+       "name": "R",
+       "label": "COLORNAME_R",
+       "value": 30,
+       "sort": 7
+      }
+     ]
+    }
+   }
+  ]
+ }
+]
