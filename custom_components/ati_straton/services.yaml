@@ -14,10 +14,9 @@ set_color:
     color:
       name: Farbe
       description: >-
-        Name oder numerische Kennung der Farbe, etwa "Farbe D" oder 5. Die
-        verfügbaren Farben stehen in den Attributen des Sensors "Farben".
+        Name oder numerische Kennung der Farbe. Beides steht in den Attributen
+        des Sensors "Farben".
       required: true
-      example: Farbe D
       selector:
         text:
     values:

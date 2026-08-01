@@ -150,7 +150,7 @@ def derive_timerange(
     """Ermittelt den Beleuchtungszeitraum für einen Programmwechsel.
 
     Der Zeitbereich gehört **nicht** fest zum Programm: Im Mitschnitt der
-    Originaloberfläche wich er vom ``timerange`` des Presettings ab (Programm B
+    Originaloberfläche wich er vom ``timerange`` des Presettings ab (ein Werksprogramm
     sendete 32400 statt der hinterlegten 37800), und eigene Presettings bringen
     gar keinen mit.
 

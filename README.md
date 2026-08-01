@@ -35,7 +35,6 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - [Viewing and editing colours](#viewing-and-editing-colours)
 - [How writes are kept safe](#how-writes-are-kept-safe)
 - [Risks and warnings](#risks-and-warnings)
-- [Device security findings](#device-security-findings)
 - [Known limitations](#known-limitations)
 - [Development](#development)
 - [Disclaimer](#disclaimer)
@@ -201,7 +200,7 @@ loads.
   target:
     entity_id: select.ati_straton_light_program
   data:
-    option: Community presets · Programm B
+    option: Community presets · Program name
 ```
 
 ### Editing a colour's composition
@@ -212,7 +211,7 @@ Channels you do not list stay unchanged. Values range from 0 to 255.
 service: ati_straton.set_color
 data:
   device_id: <your Straton>
-  color: Farbe D
+  color: <name from the Colours sensor>
   values:
     B: 255
     V: 180
@@ -486,14 +485,14 @@ content: |
 ```
 
 On the test device this produces a table like the following — `Farbe E` in
-the morning, `Farbe D` during the day, back again in the evening:
+the morning, `eine Farbe` during the day, back again in the evening:
 
 | Time | Intensity | Colour |
 |---|--:|---|
 | 09:00 | 0 | Farbe E |
 | 10:00 | 52.71 | Farbe E |
-| 12:00 | 70.0 | Farbe D |
-| 19:08 | 49.41 | Farbe D |
+| 12:00 | 70.0 | eine Farbe |
+| 19:08 | 49.41 | eine Farbe |
 | 20:11 | 49.41 | Farbe E |
 | 22:30 | 0 | Farbe E |
 
@@ -553,28 +552,6 @@ can always be undone there.
 
 ---
 
-## Device security findings
-
-These concern the ATI Straton itself, not this integration. They were found
-while reverse-engineering the API and are documented so you can judge the risk.
-
-| # | Finding |
-|---|---|
-| **S-01** | `GET /api/user` returns the account's **internal account data** (unprotected) to any authenticated session |
-| **S-02** | **No TLS.** Credentials cross your network in the clear on every login |
-| **S-03** | `reset-device`, `reboot` and `delete-spot` are reachable with an ordinary session, without extra confirmation |
-| **S-04** | `GET /api/network` returns the **network settings of the fixture's own access point** in plain text |
-
-This integration **never calls** `/api/user` or `/api/network`; both are hard
-blocked in the HTTP client and excluded from diagnostics. The destructive
-endpoints are deliberately not exposed as entities, so no automation can trigger
-them by accident.
-
-Recommendations: do not reuse a password you use anywhere else, and put the
-fixture on a separate IoT VLAN or WLAN.
-
----
-
 ## Known limitations
 
 - **No per-channel control.** The socket path the web frontend contains for this
@@ -600,10 +577,9 @@ python3 -m venv .venv
 ./.venv/bin/python -m ruff check custom_components tests
 ```
 
-86 tests run against recorded device data in `tests/fixtures/` and need **no
-hardware**. Expected values for intensity scaling and program loading were taken
-from a traffic capture of the original web interface, so the integration
-reproduces the device's own behaviour byte for byte.
+143 tests run against synthetic data in `tests/fixtures/` and need **no
+hardware**. The fixtures are entirely made up and contain no manufacturer data; see
+`tests/fixtures/README.md`.
 
 `requirements.md` documents the full reverse-engineering process: every endpoint,
 the data model, the measurements, and the dead ends.
@@ -621,8 +597,17 @@ case it is useful to someone else.
 
 **It has no connection to ATI Aquaristik GmbH & Co. KG.** The manufacturer has
 neither developed, reviewed, approved nor endorsed it, and provides no support
-for it. "ATI" and "Straton" are the manufacturer's trademarks and are used here
-only to describe what the software talks to.
+for it.
+
+"ATI", "Straton" and "SiriusPro" are trademarks of their respective owner. They
+appear here **descriptively only**, to state which device this software talks
+to, and no claim to them is made. The repository name follows the convention of
+the Home Assistant community, which names integrations after the device they
+support; it does not indicate any official origin.
+
+The licence in [LICENSE](LICENSE) covers the source code of this integration. It
+does not extend to API structures, naming or device data originating from the
+manufacturer.
 
 The device API is not public. It was reconstructed by observing the fixture's own
 web interface and may change or disappear with any firmware update.

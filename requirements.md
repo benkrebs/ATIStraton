@@ -107,7 +107,7 @@ Device (id 10000001, "Straton Flex G2 153")
 │                          type: "first"|"node"|…, index, valueOrg, color: <Farbpreset> }
 │                        → jeder Knoten trägt Zeit + Intensität + vollständiges Farbpreset
 │
-└── presettings[7]   Werkspresets, z. B. "werkspreset-1.json"
+└── presettings[7]   Werkspresets, z. B. "werkspreset.json"
                      { _id, filename, title, description, group, disabled,
                        timerange: { start, end } (Sek.), intensities[] }
 ```
@@ -697,40 +697,21 @@ optionaler Pfad C mit Backup · Diagnostics · Übersetzungen · HACS-Paketierun
 
 ---
 
-## 9. Sicherheitsbefunde
+## 9. Umgang mit sensiblen Endpunkten
 
-> **S-01 — `GET /api/user` gibt den interne Kontodaten preis.**
-> Der Endpunkt liefert `{ name, password: "<40 Hex-Zeichen>", timezone }`. Die Länge
-> und das Format entsprechen **unsaltiertem SHA-1**. Jede authentifizierte Session
-> kann den Hash lesen; ohne Salt ist er gegen Rainbow-Tables und Offline-Angriffe
-> schlecht geschützt.
->
-> **Konsequenzen für die Integration:** `/api/user` wird nicht aufgerufen, nicht
-> gespeichert und in `diagnostics` hart ausgeschlossen (FR-14).
-> **Konsequenz für den Betrieb:** Am Gerät kein Passwort verwenden, das anderswo
-> im Einsatz ist.
+Zwei Endpunkte der Geräte-API liefern Zugangs- beziehungsweise
+Netzwerkkonfigurationsdaten aus. Sie werden von der Integration **nie**
+aufgerufen: Der HTTP-Client weist sie hart ab (`FORBIDDEN_ENDPOINTS`), sie
+erscheinen nicht in den Diagnosedaten und werden nicht als Fixture abgelegt.
 
-> **S-02 — Kein TLS.** Zugangsdaten gehen bei jedem Login im Klartext über das LAN.
-> Zusammen mit S-01 bedeutet das: Wer den Netzwerkverkehr mitliest, erhält das
-> Passwort direkt. Mitigation liegt außerhalb der Integration (Netzsegmentierung,
-> eigenes VLAN/WLAN für IoT-Geräte).
+Ebenso werden `reset-device`, `reboot` und `delete-spot` bewusst nicht als
+Entitäten angeboten. Sie sind betriebsunterbrechend beziehungsweise destruktiv,
+und keine Automation soll sie versehentlich auslösen können.
 
-> **S-04 — `GET /api/network` gibt den Netzwerkangaben im Klartext preis.**
-> Der Endpunkt liefert die vollständige WLAN-Konfiguration. Der Pre-Shared Key des
-> **geräteeigenen Access Points** (`ssid: "ATI-Straton-10000001"`, versteckt,
-> `encryption: "psk2"`) steht dort unmaskiert. Der Schlüssel des Client-Netzes
-> (`sta`) ist immerhin als `****` maskiert — der AP-Schlüssel nicht.
->
-> **Konsequenzen:** `/api/network` wird wie `/api/user` behandelt: nicht abgerufen,
-> nicht gespeichert, aus Diagnostics ausgeschlossen, nicht als Fixture abgelegt.
-> Für den Betrieb: Der AP-Schlüssel sollte als kompromittiert gelten, sobald jemand
-> eine authentifizierte Session hatte.
+Unabhängig davon: Das Gerät bietet kein TLS. Zugangsdaten gehen im Klartext über
+das lokale Netz, weshalb ein eigenes IoT-VLAN oder -WLAN zu empfehlen ist und am
+Gerät kein anderweitig genutztes Passwort stehen sollte.
 
-> **S-03 — Destruktive Endpunkte ohne zusätzliche Bestätigung.**
-> `/api/reset-device`, `/api/reboot`, `/api/delete-spot` sind mit einer normalen
-> Session auslösbar. Die Integration exponiert sie bewusst nicht (§6.2).
-
----
 
 ## 10. Verbleibende offene Punkte
 

@@ -48,8 +48,7 @@ EVENT_LOGOUT: Final = "logout"
 EMIT_COLOR_PREVIEW: Final = "color-preview"
 EMIT_COLOR_CHANGE: Final = "color-change"
 
-# Endpunkte, die Geheimnisse im Klartext ausliefern (Sicherheitsbefunde S-01 und
-# S-04 der requirements.md): /api/user enthält den interne Kontodaten, /api/network den
-# Netzwerkangaben des geräteeigenen Access Points. Sie werden nie abgerufen und sind
-# hier vermerkt, damit Diagnostics und Tests sie ausschließen können.
+# Endpunkte, die Zugangs- beziehungsweise Netzwerkkonfigurationsdaten
+# ausliefern. Sie werden nie abgerufen und sind hier vermerkt, damit auch
+# Diagnostik und Tests sie ausschließen.
 FORBIDDEN_ENDPOINTS: Final[frozenset[str]] = frozenset({"user", "network"})

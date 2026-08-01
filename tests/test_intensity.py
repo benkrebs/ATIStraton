@@ -1,8 +1,10 @@
-"""Tests der Intensitätsskalierung gegen echte Gerätedaten.
+"""Tests der Intensitätsskalierung.
 
-Die Erwartungswerte stammen aus dem Playwright-Mitschnitt der originalen
-Geräteoberfläche: Beim Verstellen des Reglers sendete sie Knotenwerte, die exakt
-der Formel ``valueOrg × n / maxValueOrg`` folgen.
+Die Testdaten sind frei erfunden (siehe ``fixtures/README.md``). Der Bezugswert
+ist ``maxValueOrg = 80``, die Knoten stehen auf ``value = valueOrg × 50 / 80``.
+Die Erwartungswerte sind daraus von Hand nach der Formel
+``value = valueOrg × n / maxValueOrg`` gerechnet, also unabhängig von der
+Implementierung.
 """
 
 from __future__ import annotations
@@ -37,8 +39,8 @@ class TestReferenceValues:
     def test_max_value_org_matches_device(self, timelines: list[dict]) -> None:
         assert max_value_org(timelines) == 80.0
 
-    def test_current_intensity_matches_device(self, timelines: list[dict]) -> None:
-        assert current_intensity(timelines) == 65.0
+    def test_current_intensity_is_the_peak(self, timelines: list[dict]) -> None:
+        assert current_intensity(timelines) == 50.0
 
     def test_empty_input_is_zero(self) -> None:
         assert max_value_org([]) == 0.0
@@ -46,69 +48,17 @@ class TestReferenceValues:
 
 
 class TestScaling:
-    def test_matches_the_ui_formula(self, timelines: list[dict]) -> None:
-        """Reglerstellung 33 — Werte aus dem Mitschnitt der Oberfläche."""
-        scaled = scaled_timelines(timelines, 33.0)
-        assert node_values(scaled) == [
-            0.0,
-            0.0,
-            24.75,
-            29.7,
-            33.0,
-            32.17,
-            30.52,
-            30.52,
-            22.69,
-            30.52,
-            24.75,
-            18.56,
-            0.82,
-            0.82,
-            0.0,
-            0.0,
-        ]
+    def test_matches_the_formula_by_hand(self, timelines: list[dict]) -> None:
+        """Reglerstellung 40 bei Bezug 80 heißt: jeder Knoten auf valueOrg / 2."""
+        scaled = scaled_timelines(timelines, 40.0)
+        originals = [float(n["valueOrg"]) for tl in timelines for n in tl["nodes"]]
+        assert node_values(scaled) == [round(v / 2, 2) for v in originals]
+        assert max(node_values(scaled)) == 40.0
 
-    def test_matches_the_ui_formula_at_49(self, timelines: list[dict]) -> None:
-        scaled = scaled_timelines(timelines, 49.0)
-        assert node_values(scaled) == [
-            0.0,
-            0.0,
-            36.75,
-            44.1,
-            49.0,
-            47.77,
-            45.33,
-            45.33,
-            33.69,
-            45.33,
-            36.75,
-            27.56,
-            1.23,
-            1.23,
-            0.0,
-            0.0,
-        ]
-
-    def test_matches_the_ui_formula_at_71(self, timelines: list[dict]) -> None:
-        scaled = scaled_timelines(timelines, 71.0)
-        assert node_values(scaled) == [
-            0.0,
-            0.0,
-            53.25,
-            63.9,
-            71.0,
-            69.22,
-            65.67,
-            65.67,
-            48.81,
-            65.67,
-            53.25,
-            39.94,
-            1.77,
-            1.77,
-            0.0,
-            0.0,
-        ]
+    def test_halving_the_setting_halves_every_node(self, timelines: list[dict]) -> None:
+        full = node_values(scaled_timelines(timelines, 80.0))
+        half = node_values(scaled_timelines(timelines, 40.0))
+        assert half == [round(v / 2, 2) for v in full]
 
     def test_full_intensity_reproduces_value_org(self, timelines: list[dict]) -> None:
         scaled = scaled_timelines(timelines, max_value_org(timelines))
@@ -193,24 +143,24 @@ class TestFactorRescaling:
 class TestIntensityAt:
     """Interpolation der Tageskurve auf eine Uhrzeit."""
 
-    def test_peak_at_noon(self, timelines: list[dict]) -> None:
-        """Die Fixture erreicht ihr Maximum um 11:15 mit 65."""
-        assert intensity_at(timelines, 11 * 3600 + 15 * 60) == 65.0
+    def test_peak_at_its_node(self, timelines: list[dict]) -> None:
+        """Der höchste Stützpunkt liegt um 11:15 bei 50."""
+        assert intensity_at(timelines, 11 * 3600 + 15 * 60) == 50.0
 
     def test_night_is_dark(self, timelines: list[dict]) -> None:
         assert intensity_at(timelines, 3 * 3600) == 0.0
         assert intensity_at(timelines, 23 * 3600) == 0.0
 
     def test_interpolates_between_nodes(self, timelines: list[dict]) -> None:
-        """09:00 steht auf 0, 10:00 auf 48.75 — 09:30 muss dazwischen liegen."""
+        """09:00 steht auf 0, 10:00 auf 25 — 09:30 muss genau dazwischen liegen."""
         value = intensity_at(timelines, 9 * 3600 + 1800)
-        assert 0 < value < 48.75
-        assert value == pytest.approx(24.375, abs=0.01)
+        assert 0 < value < 25
+        assert value == pytest.approx(12.5, abs=0.01)
 
     def test_exact_node_times_return_the_node_value(
         self, timelines: list[dict]
     ) -> None:
-        assert intensity_at(timelines, 10 * 3600) == 48.75
+        assert intensity_at(timelines, 10 * 3600) == 25.0
 
     def test_wraps_around_midnight(self, timelines: list[dict]) -> None:
         assert intensity_at(timelines, 86400) == intensity_at(timelines, 0)

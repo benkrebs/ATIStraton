@@ -194,11 +194,10 @@ class StratonApiClient:
     ) -> Any:
         name = endpoint.strip("/")
         if name in FORBIDDEN_ENDPOINTS:
-            # /api/user und /api/network liefern Geheimnisse im Klartext
-            # (Sicherheitsbefunde S-01/S-04). Hart gesperrt, damit auch kein
-            # künftiger Codepfad sie versehentlich abruft.
+            # Hart gesperrt, damit auch kein künftiger Codepfad diese
+            # Endpunkte versehentlich abruft.
             raise StratonError(
-                f"Endpunkt {name!r} ist gesperrt: liefert Geheimnisse im Klartext"
+                f"Endpunkt {name!r} ist gesperrt: liefert sensible Daten"
             )
 
         if not self._logged_in:

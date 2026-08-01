@@ -22,12 +22,12 @@ device.json
 backups/
 
 # Mitschnitte von Geräteverkehr. Können Session-Cookies und
-# Netzwerkkonfiguration enthalten (siehe Sicherheitsbefunde S-01/S-04).
+# Netzwerkkonfiguration enthalten.
 captures/
 *.har
 
-# Diese beiden Endpunkte liefern Geheimnisse im Klartext und dürfen
-# niemals als Fixture abgelegt werden.
+# Diese beiden Endpunkte liefern sensible Daten und dürfen niemals als
+# Fixture abgelegt werden.
 tests/fixtures/user.json
 tests/fixtures/network.json
 

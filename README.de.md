@@ -37,7 +37,6 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - [Farben ansehen und bearbeiten](#farben-ansehen-und-bearbeiten)
 - [Wie Schreibvorgänge abgesichert sind](#wie-schreibvorgänge-abgesichert-sind)
 - [Risiken und Warnhinweise](#risiken-und-warnhinweise)
-- [Sicherheitsbefunde am Gerät](#sicherheitsbefunde-am-gerät)
 - [Bekannte Einschränkungen](#bekannte-einschränkungen)
 - [Entwicklung](#entwicklung)
 - [Haftungsausschluss](#haftungsausschluss)
@@ -207,7 +206,7 @@ Erst die Stufe setzen, dann das Programm — die Stufe wird beim Laden gelesen.
   target:
     entity_id: select.ati_straton_lichtprogramm
   data:
-    option: Bewährte Einstellungen der Community · Programm B
+    option: Bewährte Einstellungen der Community · Programmname
 ```
 
 ### Farbzusammensetzung ändern
@@ -218,7 +217,7 @@ Nicht angegebene Kanäle bleiben unverändert. Der Wertebereich ist 0 bis 255.
 service: ati_straton.set_color
 data:
   device_id: <deine Straton>
-  color: Farbe D
+  color: <Name aus dem Sensor Farben>
   values:
     B: 255
     V: 180
@@ -495,14 +494,14 @@ content: |
 ```
 
 Ergibt beim Testgerät eine Tabelle wie diese — morgens `Farbe E`, tagsüber
-`Farbe D`, abends zurück:
+`eine Farbe`, abends zurück:
 
 | Uhrzeit | Intensität | Farbe |
 |---|--:|---|
 | 09:00 | 0 | Farbe E |
 | 10:00 | 52,71 | Farbe E |
-| 12:00 | 70,0 | Farbe D |
-| 19:08 | 49,41 | Farbe D |
+| 12:00 | 70,0 | eine Farbe |
+| 19:08 | 49,41 | eine Farbe |
 | 20:11 | 49,41 | Farbe E |
 | 22:30 | 0 | Farbe E |
 
@@ -566,29 +565,6 @@ dieser Integration lassen sich dort jederzeit rückgängig machen.
 
 ---
 
-## Sicherheitsbefunde am Gerät
-
-Diese betreffen die ATI Straton selbst, nicht diese Integration. Sie fielen beim
-Reverse Engineering der API an und sind dokumentiert, damit das Risiko
-einschätzbar ist.
-
-| # | Befund |
-|---|---|
-| **S-01** | `GET /api/user` liefert den **interne Kontodaten** des Kontos (ungeschützt) an jede angemeldete Sitzung |
-| **S-02** | **Kein TLS.** Zugangsdaten gehen bei jedem Login im Klartext über das Netz |
-| **S-03** | `reset-device`, `reboot` und `delete-spot` sind mit einer normalen Sitzung auslösbar, ohne zusätzliche Bestätigung |
-| **S-04** | `GET /api/network` liefert den **Netzwerkangaben des geräteeigenen Access Points** im Klartext |
-
-Diese Integration ruft `/api/user` und `/api/network` **nie** auf; beide sind im
-HTTP-Client hart gesperrt und aus den Diagnosedaten ausgeschlossen. Die
-destruktiven Endpunkte werden bewusst nicht als Entitäten angeboten, damit keine
-Automation sie versehentlich auslöst.
-
-Empfehlung: am Gerät kein Passwort verwenden, das anderswo im Einsatz ist, und
-die Leuchte in ein eigenes IoT-VLAN oder -WLAN stellen.
-
----
-
 ## Bekannte Einschränkungen
 
 - **Keine Steuerung einzelner Farbkanäle.** Der dafür im Web-Frontend
@@ -614,10 +590,9 @@ python3 -m venv .venv
 ./.venv/bin/python -m ruff check custom_components tests
 ```
 
-86 Tests laufen gegen aufgezeichnete Gerätedaten in `tests/fixtures/` und
-benötigen **keine** Hardware. Die Erwartungswerte für Intensitätsskalierung und
-Programmladen stammen aus einem Verkehrsmitschnitt der Originaloberfläche, die
-Integration bildet das Geräteverhalten also Wert für Wert nach.
+143 Tests laufen gegen erfundene Testdaten in `tests/fixtures/` und benötigen
+**keine** Hardware. Die Testdaten sind vollständig erfunden und enthalten keine
+Herstellerdaten; siehe `tests/fixtures/README.md`.
 
 `requirements.md` dokumentiert das gesamte Reverse Engineering: jeden Endpunkt,
 das Datenmodell, die Messungen und die Sackgassen.
@@ -636,8 +611,18 @@ veröffentlicht für den Fall, dass es jemand anderem nützt.
 
 **Es hat keinerlei Verbindung zur ATI Aquaristik GmbH & Co. KG.** Der Hersteller
 hat es weder entwickelt noch geprüft, genehmigt oder unterstützt und bietet
-keinen Support dafür. „ATI" und „Straton" sind Marken des Herstellers und werden
-hier ausschließlich beschreibend verwendet.
+keinen Support dafür.
+
+„ATI", „Straton" und „SiriusPro" sind Marken des jeweiligen Inhabers. Sie
+erscheinen hier **ausschließlich beschreibend**, um zu benennen, mit welchem
+Gerät diese Software spricht; ein Anspruch darauf wird nicht erhoben. Der Name
+des Repositories folgt der Gepflogenheit der Home-Assistant-Gemeinschaft,
+Integrationen nach dem unterstützten Gerät zu benennen, und bedeutet keine
+amtliche Herkunft.
+
+Die Lizenz in [LICENSE](LICENSE) gilt für den Quellcode dieser Integration. Sie
+erstreckt sich nicht auf API-Strukturen, Benennungen oder Gerätedaten, die vom
+Hersteller stammen.
 
 Die Geräte-API ist nicht öffentlich. Sie wurde aus der Weboberfläche der Leuchte
 rekonstruiert und kann sich mit jedem Firmware-Update ändern oder wegfallen.

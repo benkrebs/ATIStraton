@@ -1,7 +1,7 @@
 """Tests für Lichtprogramme, Gewöhnungsstufen und Farbzusammensetzungen.
 
-Die Erwartungswerte stammen aus den echten Gerätedaten und aus dem
-Playwright-Mitschnitt zweier ``POST /load-presettings`` der Originaloberfläche.
+Die Testdaten sind frei erfunden — siehe ``fixtures/README.md``. Geprüft wird
+die Struktur der Nutzlast, nicht ein bestimmter Inhalt.
 """
 
 from __future__ import annotations
@@ -34,8 +34,8 @@ TRANSLATIONS = {
     "PRESETTING_GROUP_1": "Allgemeine Einstellungen",
     "PRESETTING_GROUP_2": "Bewährte Einstellungen der Community",
     "PRESETTING_GROUP_CUSTOM": "Eigene Voreinstellungen",
-    "PRESETTING_TITLE_8_1": "Programm A",
-    "PRESETTING_TITLE_5_1": "Programm B",
+    "PRESETTING_TITLE_1": "Erstes Testprogramm",
+    "PRESETTING_TITLE_5": "Fünftes Testprogramm",
     "PRESETTING_INTENSITY_1": "Eingewöhnungsphase",
     "PRESETTING_INTENSITY_2": "Lichtgewöhnt",
     "PRESETTING_INTENSITY_3": "Starklichtgewöhnt",
@@ -66,8 +66,8 @@ class TestPrograms:
 
     def test_titles_are_translated(self, presettings: list[dict]) -> None:
         titles = {p.title for p in parse_programs(presettings, TRANSLATIONS)}
-        assert "Programm A" in titles
-        assert "Programm B" in titles
+        assert "Erstes Testprogramm" in titles
+        assert "Fünftes Testprogramm" in titles
 
     def test_custom_program_gets_the_custom_group(
         self, presettings: list[dict]
@@ -75,7 +75,7 @@ class TestPrograms:
         custom = next(
             p for p in parse_programs(presettings, TRANSLATIONS) if p.is_custom
         )
-        assert custom.title == "Eigenes Programm"
+        assert custom.title == "Eigenes Testprogramm"
         assert custom.group == "Eigene Voreinstellungen"
 
     def test_every_program_has_three_levels(self, presettings: list[dict]) -> None:
@@ -84,7 +84,7 @@ class TestPrograms:
 
     def test_levels_carry_the_device_wording(self, presettings: list[dict]) -> None:
         program = next(
-            p for p in parse_programs(presettings, TRANSLATIONS) if p.id == 8
+            p for p in parse_programs(presettings, TRANSLATIONS) if p.id == 3
         )
         assert [level.title for level in program.levels] == [
             "Eingewöhnungsphase",
@@ -109,18 +109,18 @@ class TestLoadPayload:
         self, presettings: list[dict]
     ) -> None:
         program = next(
-            p for p in parse_programs(presettings, TRANSLATIONS) if p.id == 8
+            p for p in parse_programs(presettings, TRANSLATIONS) if p.id == 3
         )
         payload = build_load_payload(program, level_index=1, group_ids=[1])
 
-        assert payload["_id"] == 8
+        assert payload["_id"] == 3
         assert payload["intensity"] == 60
         assert payload["groups"] == [1]
         assert payload["start"] == payload["timerange"]["start"]
         assert payload["end"] == payload["timerange"]["end"]
 
     def test_exactly_one_level_is_highlighted(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         for index in range(3):
             payload = build_load_payload(program, index, [1])
             flags = [e["highlighted"] for e in payload["intensities"]]
@@ -130,27 +130,27 @@ class TestLoadPayload:
     def test_intensity_follows_the_selected_level(
         self, presettings: list[dict]
     ) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         assert build_load_payload(program, 0, [1])["intensity"] == 30
         assert build_load_payload(program, 2, [1])["intensity"] == 90
 
     def test_explicit_intensity_wins(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         assert build_load_payload(program, 0, [1], intensity=45)["intensity"] == 45
 
     def test_source_program_is_not_mutated(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         build_load_payload(program, 2, [1])
         assert all(not e.get("highlighted") for e in program.raw.get("intensities", []))
 
     @pytest.mark.parametrize("bad", [-1, 3, 99])
     def test_invalid_level_is_rejected(self, presettings: list[dict], bad: int) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         with pytest.raises(ProgramError, match="Gewöhnungsstufe"):
             build_load_payload(program, bad, [1])
 
     def test_missing_group_is_rejected(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         with pytest.raises(ProgramError, match="Timeline"):
             build_load_payload(program, 0, [])
 
@@ -172,31 +172,31 @@ class TestTimerange:
     def test_program_timerange_is_used_when_present(
         self, presettings: list[dict]
     ) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         assert derive_timerange(program) == (32400, 79200)
 
     def test_existing_schedule_wins(
         self, presettings: list[dict], timelines: list[dict]
     ) -> None:
         """Das gewohnte Lichtfenster hat Vorrang vor dem Programmvorschlag."""
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         start, end = derive_timerange(program, timelines)
         assert (start, end) == (36000, 79200)
 
     def test_dark_schedule_falls_back_to_the_program(
         self, presettings: list[dict]
     ) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         dark = [{"nodes": [{"time": 0, "value": 0}, {"time": 86400, "value": 0}]}]
         assert derive_timerange(program, dark) == (32400, 79200)
 
     def test_explicit_timerange_wins(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         payload = build_load_payload(program, 0, [1], timerange=(30000, 70000))
         assert (payload["start"], payload["end"]) == (30000, 70000)
 
     def test_inverted_timerange_is_rejected(self, presettings: list[dict]) -> None:
-        program = next(p for p in parse_programs(presettings) if p.id == 8)
+        program = next(p for p in parse_programs(presettings) if p.id == 3)
         with pytest.raises(ProgramError, match="Zeitbereich"):
             build_load_payload(program, 0, [1], timerange=(70000, 30000))
 
@@ -206,16 +206,14 @@ class TestColors:
         assert len(parse_colors(colors, TRANSLATIONS)) == 10
 
     def test_composition_is_readable(self, colors: list[dict]) -> None:
-        natural = next(
-            c for c in parse_colors(colors) if c.name == "Farbe A"
-        )
+        natural = next(c for c in parse_colors(colors) if c.name == "Testfarbe 0")
         assert natural.composition == {
-            "V": 110,
+            "V": 120,
             "RB": 60,
-            "B": 111,
-            "LC": 255,
-            "W": 255,
-            "R": 25,
+            "B": 110,
+            "LC": 250,
+            "W": 250,
+            "R": 30,
         }
 
     def test_update_changes_only_the_target(self, colors: list[dict]) -> None:
@@ -273,9 +271,9 @@ class TestScheduleColors:
 
     def test_names_match_the_device(self, timelines: list[dict]) -> None:
         assert {c.name for c in colors_in_schedule(timelines)} == {
-            "Farbe A",
-            "Farbe E",
-            "Farbe D",
+            "Testfarbe 0",
+            "Testfarbe 1",
+            "Testfarbe 2",
         }
 
     def test_compositions_are_included(self, timelines: list[dict]) -> None:
@@ -311,8 +309,8 @@ class TestScheduleOverview:
 
     def test_intensity_and_colour_are_carried_over(self, timelines: list[dict]) -> None:
         peak = max(schedule_overview(timelines), key=lambda e: e["intensity"])
-        assert peak["intensity"] == 65.0
-        assert peak["color"] == "Farbe D"
+        assert peak["intensity"] == 50.0
+        assert peak["color"] == "Testfarbe 2"
 
     def test_malformed_nodes_are_skipped(self) -> None:
         assert schedule_overview([{"nodes": [{"value": 1}]}]) == []

@@ -1,9 +1,8 @@
 """Diagnosedaten der ATI Straton Integration.
 
-Die Endpunkte ``/api/user`` und ``/api/network`` liefern Geheimnisse im Klartext
-(Sicherheitsbefunde S-01/S-04). Sie werden vom API-Client bereits gesperrt und
-tauchen deshalb hier gar nicht erst auf — die Redaktion unten schützt zusätzlich
-gegen künftige Änderungen.
+Die Endpunkte ``/api/user`` und ``/api/network`` liefern sensible Daten. Sie
+werden vom API-Client bereits gesperrt und tauchen deshalb hier gar nicht erst
+auf — die Redaktion unten schützt zusätzlich gegen künftige Änderungen.
 """
 
 from __future__ import annotations

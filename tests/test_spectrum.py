@@ -66,7 +66,7 @@ class TestMixing:
             assert all(0 <= c <= 255 for c in mix_rgb(composition))
 
     def test_white_heavy_mix_is_lighter_than_pure_blue(self) -> None:
-        """Farbe E hat kein Weiß, Farbe A viel — das muss man sehen."""
+        """Eine weißlastige Mischung muss heller herauskommen als eine rein blaue."""
         fluorescent = mix_rgb({"V": 150, "RB": 255, "B": 140})
         natural = mix_rgb({"V": 110, "RB": 60, "B": 111, "LC": 255, "W": 255, "R": 25})
         assert sum(natural) > sum(fluorescent)
