@@ -642,4 +642,6 @@ installieren.
 
 MIT — siehe [LICENSE](LICENSE).
 
+Geltungsbereich, Marken und Interoperabilität: [NOTICE.md](NOTICE.md).
+
 Fehlerberichte und Beiträge: <https://github.com/benkrebs/ATIStraton/issues>

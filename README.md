@@ -625,4 +625,6 @@ If you are not comfortable with those terms, please do not install it.
 
 MIT — see [LICENSE](LICENSE).
 
+Scope, trademarks and interoperability: [NOTICE.md](NOTICE.md).
+
 Issues and pull requests: <https://github.com/benkrebs/ATIStraton/issues>

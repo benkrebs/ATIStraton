@@ -19,18 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Scope of this licence
-
-This licence covers the source code of this integration only.
-
-It does not cover, and cannot cover, material originating from the device or its
-manufacturer — including API structures, naming, wording and any device data a
-user may hold. Those remain with their respective rights holders. Nothing in
-this repository grants any right to them.
-
-"ATI" and "Straton" are trademarks of their respective owner. They are used here
-descriptively, to state which device this software talks to. This project is not
-affiliated with the manufacturer.
