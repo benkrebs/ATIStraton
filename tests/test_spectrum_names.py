@@ -12,8 +12,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from custom_components.ati_straton.spectrum import (
     CHANNEL_COLORS,
     CHANNEL_NAMES,
+    CHANNEL_ORDER,
     channel_hex,
     channel_name,
+    channel_position,
 )
 
 
@@ -39,10 +41,10 @@ class TestChannelNames:
         ],
     )
     def test_german_names(self, channel: str, expected: str) -> None:
-        assert channel_name(channel, "de") == expected
+        assert channel_name(channel, "de", numbered=False) == expected
 
     def test_english_falls_back_for_unknown_language(self) -> None:
-        assert channel_name("V", "fr") == "Violet (V)"
+        assert channel_name("V", "fr", numbered=False) == "Violet (V)"
 
     def test_code_is_always_visible(self) -> None:
         """Der Code steht in Klammern, weil set_color ihn als Schlüssel braucht."""
@@ -56,6 +58,38 @@ class TestChannelNames:
 
     def test_unknown_channel_returns_the_code(self) -> None:
         assert channel_name("NOPE", "de") == "NOPE"
+
+
+class TestOrdering:
+    """Home Assistant sortiert alphabetisch; die Ziffer erzwingt die Reihenfolge."""
+
+    EXPECTED = ("V", "B", "RB", "LC", "W", "R")
+
+    def test_positions_follow_the_intended_order(self) -> None:
+        assert [channel_position(c) for c in self.EXPECTED] == [1, 2, 3, 4, 5, 6]
+
+    def test_alphabetical_sorting_yields_the_intended_order(self) -> None:
+        names = {channel_name(c, "de"): c for c in self.EXPECTED}
+        assert tuple(names[n] for n in sorted(names)) == self.EXPECTED
+
+    def test_dropdown_sorts_before_every_channel(self) -> None:
+        """„Farbe bearbeiten" muss vor allen Reglern stehen."""
+        for channel in self.EXPECTED:
+            assert "Farbe bearbeiten" < channel_name(channel, "de")
+
+    def test_guardian_sliders_sort_after_every_channel(self) -> None:
+        for channel in self.EXPECTED:
+            assert channel_name(channel, "de") < "Wächter Abregeltemperatur"
+
+    def test_english_order_matches_too(self) -> None:
+        names = {channel_name(c, "en"): c for c in self.EXPECTED}
+        assert tuple(names[n] for n in sorted(names)) == self.EXPECTED
+
+    def test_every_named_channel_has_a_position(self) -> None:
+        assert set(CHANNEL_ORDER) == set(CHANNEL_NAMES)
+
+    def test_unknown_channel_sorts_last(self) -> None:
+        assert channel_position("NOPE") > len(CHANNEL_ORDER)
 
 
 class TestChannelIconView:

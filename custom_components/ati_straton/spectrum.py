@@ -59,16 +59,59 @@ CHANNEL_NAMES: dict[str, dict[str, str]] = {
 """Ausgeschriebene Kanalnamen. Die Firmware kennt nur die Kurzcodes."""
 
 
-def channel_name(channel: str, language: str = "en") -> str:
+CHANNEL_ORDER: tuple[str, ...] = (
+    "V",
+    "B",
+    "RB",
+    "LC",
+    "W",
+    "R",
+    "UV",
+    "RB-V",
+    "WW",
+    "CW",
+    "HW",
+    "T5",
+)
+"""Reihenfolge, in der die Kanalregler erscheinen sollen.
+
+Home Assistant sortiert Entitäten auf der Geräteseite alphabetisch nach ihrem
+Namen und bietet dafür keine Einstellung. Die Reihenfolge lässt sich deshalb nur
+über den Namen steuern — daher die vorangestellte Ziffer in
+:func:`channel_name`.
+
+Die Reihenfolge weicht bewusst leicht von der des Geräts ab, das ``RB`` vor
+``B`` einsortiert.
+"""
+
+
+def channel_position(channel: str) -> int:
+    """Platz eines Kanals in der Anzeige, beginnend bei 1."""
+    try:
+        return CHANNEL_ORDER.index(channel) + 1
+    except ValueError:
+        return len(CHANNEL_ORDER) + 1
+
+
+def channel_name(channel: str, language: str = "en", numbered: bool = True) -> str:
     """Ausgeschriebener Name eines Kanals, mit dem Code in Klammern.
 
     Der Code bleibt sichtbar, weil ``ati_straton.set_color`` ihn als Schlüssel
     erwartet — und weil er bei ``LC`` von der Beschriftung des Geräts abweicht,
     die dort schlicht ``C`` lautet.
+
+    Args:
+        numbered: Stellt die Position voran, damit die alphabetische Sortierung
+            von Home Assistant die gewünschte Reihenfolge ergibt. Ohne das
+            stünde Blau vor Violett.
     """
     lang = "de" if language.startswith("de") else "en"
     written = CHANNEL_NAMES.get(channel, {}).get(lang)
-    return f"{written} ({channel})" if written else channel
+    if not written:
+        return channel
+    label = f"{written} ({channel})"
+    prefix = "Kanal" if lang == "de" else "Channel"
+    return f"{prefix} {channel_position(channel)} {label}" if numbered else label
 
 
 def channel_hex(channel: str) -> str:

@@ -311,7 +311,7 @@ entity IDs follow the name you give that device.
 | **Guard release temperature** | `number` | Reduction is unwound below this value. |
 | **Guard reduction step** | `number` | Percentage removed per control step. |
 | **Colour to edit** | `select` | Which of the ten colours the channel sliders edit. |
-| **Violet (V)**, **Royal blue (RB)**, **Blue (B)**, **Cyan (LC)**, **White (W)**, **Red (R)** | `number` | Share of that channel, 0–255. Each slider carries a dot in its channel colour. Writes to a buffer, **not** straight to the device. |
+| **Channel 1 Violet (V)** … **Channel 6 Red (R)** | `number` | Share of that channel, 0–255. Each slider carries a dot in its channel colour. Writes to a buffer, **not** straight to the device. |
 | **Save colour** | `button` | Transfers the buffer. Only available when there is something to save. |
 | **Discard changes** | `button` | Reloads the device values. |
 
@@ -398,6 +398,42 @@ Lovelace card is needed for this.
 
 Each of these entities additionally carries its colour in the `hex` attribute —
 in preparation for a later card that also renders the mixed colours.
+
+#### Why the sliders carry a number
+
+Home Assistant sorts entities on the device page **alphabetically by name** and
+offers no setting for it. Without a number, *Blue* would come before *Violet*
+and *Red* before *Royal blue*. The leading position forces a sensible order:
+
+```
+Colour to edit
+Channel 1 Violet (V)
+Channel 2 Blue (B)
+Channel 3 Royal blue (RB)
+Channel 4 Cyan (LC)
+Channel 5 White (W)
+Channel 6 Red (R)
+```
+
+On your **own dashboard** you do not need this — there you set the order
+yourself:
+
+```yaml
+type: entities
+title: Edit colour
+entities:
+  - entity: select.ati_straton_colour_to_edit
+  - entity: number.ati_straton_channel_1_violet_v
+  - entity: number.ati_straton_channel_2_blue_b
+  - entity: number.ati_straton_channel_3_royal_blue_rb
+  - entity: number.ati_straton_channel_4_cyan_lc
+  - entity: number.ati_straton_channel_5_white_w
+  - entity: number.ati_straton_channel_6_red_r
+  - entity: button.ati_straton_save_colour
+  - entity: button.ati_straton_discard_changes
+```
+
+The exact entity IDs follow the name of your device.
 
 ### Displaying
 

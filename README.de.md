@@ -319,7 +319,7 @@ Entitäts-IDs richten sich nach dem Namen, den du dem Gerät gibst.
 | **Wächter Freigabetemperatur** | `number` | Darunter wird die Absenkung zurückgenommen. |
 | **Wächter Reduktionsschritt** | `number` | Absenkung je Regelschritt in Prozent. |
 | **Farbe bearbeiten** | `select` | Welche der zehn Farben die Kanalregler bearbeiten. |
-| **Violett (V)**, **Royalblau (RB)**, **Blau (B)**, **Cyan (LC)**, **Weiß (W)**, **Rot (R)** | `number` | Anteil des jeweiligen Kanals, 0–255. Jeder Regler trägt einen Punkt in seiner Kanalfarbe. Schreibt in einen Puffer, **nicht** direkt zum Gerät. |
+| **Kanal 1 Violett (V)** … **Kanal 6 Rot (R)** | `number` | Anteil des jeweiligen Kanals, 0–255. Jeder Regler trägt einen Punkt in seiner Kanalfarbe. Schreibt in einen Puffer, **nicht** direkt zum Gerät. |
 | **Farbe speichern** | `button` | Überträgt den Puffer. Nur verfügbar, wenn es etwas zu speichern gibt. |
 | **Änderungen verwerfen** | `button` | Lädt die Gerätewerte zurück. |
 
@@ -406,6 +406,43 @@ kleines Bild unter `/api/ati_straton/channel/<Code>` aus und hinterlegt es als
 
 Zusätzlich führt jede dieser Entitäten im Attribut `hex` ihre Farbe — als
 Vorbereitung für eine spätere Karte, die auch die gemischten Farben darstellt.
+
+#### Warum die Regler eine Ziffer tragen
+
+Home Assistant sortiert die Entitäten auf der Geräteseite **alphabetisch nach
+Namen** und bietet keine Einstellung dafür. Ohne Ziffer stünde *Blau* vor
+*Violett* und *Rot* vor *Royalblau*. Die vorangestellte Position erzwingt die
+sinnvolle Reihenfolge:
+
+```
+Farbe bearbeiten
+Kanal 1 Violett (V)
+Kanal 2 Blau (B)
+Kanal 3 Royalblau (RB)
+Kanal 4 Cyan (LC)
+Kanal 5 Weiß (W)
+Kanal 6 Rot (R)
+```
+
+Auf einem **eigenen Dashboard** brauchst du das nicht — dort bestimmst du die
+Reihenfolge selbst:
+
+```yaml
+type: entities
+title: Farbe bearbeiten
+entities:
+  - entity: select.ati_straton_farbe_bearbeiten
+  - entity: number.ati_straton_kanal_1_violett_v
+  - entity: number.ati_straton_kanal_2_blau_b
+  - entity: number.ati_straton_kanal_3_royalblau_rb
+  - entity: number.ati_straton_kanal_4_cyan_lc
+  - entity: number.ati_straton_kanal_5_weiss_w
+  - entity: number.ati_straton_kanal_6_rot_r
+  - entity: button.ati_straton_farbe_speichern
+  - entity: button.ati_straton_anderungen_verwerfen
+```
+
+Die genauen Entitäts-IDs richten sich nach dem Namen deines Geräts.
 
 ### Anzeigen
 
