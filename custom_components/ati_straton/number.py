@@ -27,6 +27,7 @@ from .guardian import (
     MIN_TEMP_SETTING,
     GuardianConfig,
 )
+from .http import channel_picture_url
 from .intensity import (
     MAX_INTENSITY,
     MIN_INTENSITY,
@@ -35,7 +36,7 @@ from .intensity import (
     max_value_org,
 )
 from .programs import MAX_CHANNEL_VALUE, MIN_CHANNEL_VALUE
-from .spectrum import channel_hex
+from .spectrum import channel_hex, channel_name
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -45,9 +46,6 @@ class StratonNumberDescription(NumberEntityDescription):
     field: str
     value_fn: Callable[[GuardianConfig], float]
 
-
-DISPLAY_NAMES = {"LC": "C"}
-"""Kanäle, deren Beschriftung am Gerät vom Schlüssel abweicht."""
 
 GUARDIAN_NUMBERS: tuple[StratonNumberDescription, ...] = (
     StratonNumberDescription(
@@ -104,7 +102,7 @@ async def async_setup_entry(
     )
     # Ein Regler je Kanal, den das Gerät tatsächlich besitzt.
     entities.extend(
-        StratonColorChannelNumber(coordinator, channel)
+        StratonColorChannelNumber(coordinator, channel, hass.config.language)
         for channel in sorted(
             {
                 value.get("name")
@@ -131,12 +129,14 @@ class StratonColorChannelNumber(StratonEntity, NumberEntity):
     _attr_mode = NumberMode.SLIDER
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: StratonCoordinator, channel: str) -> None:
+    def __init__(
+        self, coordinator: StratonCoordinator, channel: str, language: str
+    ) -> None:
         super().__init__(coordinator, f"color_channel_{channel.lower()}")
         self._channel = channel
-        # Kanal LC heißt in der Geräteoberfläche C — die Beschriftung folgt
-        # dem Gerät, der Schlüssel bleibt LC.
-        self._attr_name = f"Kanal {DISPLAY_NAMES.get(channel, channel)}"
+        self._attr_name = channel_name(channel, language)
+        # Gefärbter Punkt statt des einfarbigen Icons.
+        self._attr_entity_picture = channel_picture_url(channel)
 
     @property
     def native_value(self) -> float | None:

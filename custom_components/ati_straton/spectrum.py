@@ -40,6 +40,36 @@ CHANNEL_COLORS: dict[str, Rgb] = {
 NEUTRAL = "#808080"
 """Rückfallwert, wenn sich keine Farbe bestimmen lässt."""
 
+CHANNEL_NAMES: dict[str, dict[str, str]] = {
+    "V": {"de": "Violett", "en": "Violet"},
+    "UV": {"de": "Ultraviolett", "en": "Ultraviolet"},
+    "RB": {"de": "Royalblau", "en": "Royal blue"},
+    "RB-V": {"de": "Royalblau/Violett", "en": "Royal blue/violet"},
+    "B": {"de": "Blau", "en": "Blue"},
+    "LC": {"de": "Cyan", "en": "Cyan"},
+    "W": {"de": "Weiß", "en": "White"},
+    "WW": {"de": "Warmweiß", "en": "Warm white"},
+    "CW": {"de": "Kaltweiß", "en": "Cool white"},
+    # HW hinterlegt die Firmware nirgends als Klartext; der Code bleibt stehen,
+    # statt eine Bedeutung zu erfinden.
+    "HW": {"de": "Weiß HW", "en": "White HW"},
+    "T5": {"de": "T5-Leuchtstoff", "en": "T5 fluorescent"},
+    "R": {"de": "Rot", "en": "Red"},
+}
+"""Ausgeschriebene Kanalnamen. Die Firmware kennt nur die Kurzcodes."""
+
+
+def channel_name(channel: str, language: str = "en") -> str:
+    """Ausgeschriebener Name eines Kanals, mit dem Code in Klammern.
+
+    Der Code bleibt sichtbar, weil ``ati_straton.set_color`` ihn als Schlüssel
+    erwartet — und weil er bei ``LC`` von der Beschriftung des Geräts abweicht,
+    die dort schlicht ``C`` lautet.
+    """
+    lang = "de" if language.startswith("de") else "en"
+    written = CHANNEL_NAMES.get(channel, {}).get(lang)
+    return f"{written} ({channel})" if written else channel
+
 
 def channel_hex(channel: str) -> str:
     """Feste Anzeigefarbe eines Kanals, etwa für die Beschriftung eines Reglers."""

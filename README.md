@@ -311,7 +311,7 @@ entity IDs follow the name you give that device.
 | **Guard release temperature** | `number` | Reduction is unwound below this value. |
 | **Guard reduction step** | `number` | Percentage removed per control step. |
 | **Colour to edit** | `select` | Which of the ten colours the channel sliders edit. |
-| **Channel V, RB, B, C, W, R** | `number` | Share of that channel, 0–255. Writes to a buffer, **not** straight to the device. |
+| **Violet (V)**, **Royal blue (RB)**, **Blue (B)**, **Cyan (LC)**, **White (W)**, **Red (R)** | `number` | Share of that channel, 0–255. Each slider carries a dot in its channel colour. Writes to a buffer, **not** straight to the device. |
 | **Save colour** | `button` | Transfers the buffer. Only available when there is something to save. |
 | **Discard changes** | `button` | Reloads the device values. |
 
@@ -386,8 +386,18 @@ interface, where you also adjust and then save.
 Switching colours discards an open buffer. **Save colour** and **Discard
 changes** are only available while there is something to save.
 
-Each of these entities carries an approximate colour in its `hex` attribute — in
-preparation for a later Lovelace card with coloured swatches.
+The channel sliders are named in full and carry **the channel code in
+parentheses** — for example *Cyan (LC)*. That is deliberate:
+`ati_straton.set_color` expects the code as its key, and this particular channel
+is labelled `C` in the device's own interface.
+
+Each slider is preceded by a **dot in its channel colour**. Home Assistant
+cannot tint entity icons, so the integration serves a small image at
+`/api/ati_straton/channel/<code>` and sets it as `entity_picture`. No custom
+Lovelace card is needed for this.
+
+Each of these entities additionally carries its colour in the `hex` attribute —
+in preparation for a later card that also renders the mixed colours.
 
 ### Displaying
 

@@ -319,7 +319,7 @@ Entitäts-IDs richten sich nach dem Namen, den du dem Gerät gibst.
 | **Wächter Freigabetemperatur** | `number` | Darunter wird die Absenkung zurückgenommen. |
 | **Wächter Reduktionsschritt** | `number` | Absenkung je Regelschritt in Prozent. |
 | **Farbe bearbeiten** | `select` | Welche der zehn Farben die Kanalregler bearbeiten. |
-| **Kanal V, RB, B, C, W, R** | `number` | Anteil des jeweiligen Kanals, 0–255. Schreibt in einen Puffer, **nicht** direkt zum Gerät. |
+| **Violett (V)**, **Royalblau (RB)**, **Blau (B)**, **Cyan (LC)**, **Weiß (W)**, **Rot (R)** | `number` | Anteil des jeweiligen Kanals, 0–255. Jeder Regler trägt einen Punkt in seiner Kanalfarbe. Schreibt in einen Puffer, **nicht** direkt zum Gerät. |
 | **Farbe speichern** | `button` | Überträgt den Puffer. Nur verfügbar, wenn es etwas zu speichern gibt. |
 | **Änderungen verwerfen** | `button` | Lädt die Gerätewerte zurück. |
 
@@ -395,8 +395,17 @@ in der Geräteoberfläche, wo man ebenfalls anpasst und dann speichert.
 Ein Wechsel der Farbe verwirft einen offenen Puffer. **Farbe speichern** und
 **Änderungen verwerfen** sind nur verfügbar, solange es etwas zu speichern gibt.
 
-Jede dieser Entitäten führt im Attribut `hex` eine Näherungsfarbe — als
-Vorbereitung für eine spätere Lovelace-Karte mit farbigen Feldern.
+Die Kanalregler heißen ausgeschrieben und tragen **den Kanalcode in Klammern** —
+etwa *Cyan (LC)*. Das ist Absicht: `ati_straton.set_color` erwartet den Code als
+Schlüssel, und ausgerechnet dieser Kanal heißt in der Geräteoberfläche `C`.
+
+Vor jedem Regler steht ein **Punkt in der Kanalfarbe**. Home Assistant kann
+Entitäts-Icons nicht einfärben, deshalb liefert die Integration dafür ein
+kleines Bild unter `/api/ati_straton/channel/<Code>` aus und hinterlegt es als
+`entity_picture`. Eine eigene Lovelace-Karte ist dafür nicht nötig.
+
+Zusätzlich führt jede dieser Entitäten im Attribut `hex` ihre Farbe — als
+Vorbereitung für eine spätere Karte, die auch die gemischten Farben darstellt.
 
 ### Anzeigen
 

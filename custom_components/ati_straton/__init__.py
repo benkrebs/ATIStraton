@@ -18,6 +18,7 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from .api import StratonApiClient, create_cookie_jar
 from .const import CONF_MAX_INTENSITY, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
 from .coordinator import StratonCoordinator
+from .http import async_register_view
 from .intensity import MAX_INTENSITY
 from .services import async_register_services
 
@@ -71,6 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: StratonConfigEntry) -> b
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     async_register_services(hass)
+    async_register_view(hass)
     return True
 
 
