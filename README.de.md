@@ -34,7 +34,7 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - [Einrichtung](#einrichtung)
 - [Nutzung](#nutzung)
 - [Alle Entitäten](#alle-entitäten)
-- [Farben ansehen](#farben-ansehen)
+- [Farben ansehen und bearbeiten](#farben-ansehen-und-bearbeiten)
 - [Wie Schreibvorgänge abgesichert sind](#wie-schreibvorgänge-abgesichert-sind)
 - [Risiken und Warnhinweise](#risiken-und-warnhinweise)
 - [Sicherheitsbefunde am Gerät](#sicherheitsbefunde-am-gerät)
@@ -318,6 +318,10 @@ Entitäts-IDs richten sich nach dem Namen, den du dem Gerät gibst.
 | **Wächter Abregeltemperatur** | `number` | Ab diesem Wert wird abgesenkt. |
 | **Wächter Freigabetemperatur** | `number` | Darunter wird die Absenkung zurückgenommen. |
 | **Wächter Reduktionsschritt** | `number` | Absenkung je Regelschritt in Prozent. |
+| **Farbe bearbeiten** | `select` | Welche der zehn Farben die Kanalregler bearbeiten. |
+| **Kanal V, RB, B, C, W, R** | `number` | Anteil des jeweiligen Kanals, 0–255. Schreibt in einen Puffer, **nicht** direkt zum Gerät. |
+| **Farbe speichern** | `button` | Überträgt den Puffer. Nur verfügbar, wenn es etwas zu speichern gibt. |
+| **Änderungen verwerfen** | `button` | Lädt die Gerätewerte zurück. |
 
 Beleuchtung, Intensität und Lichtprogramm sind **gesperrt, solange der Wächter
 regelt** — sonst würden zwei Schreiber um denselben Tagesverlauf konkurrieren.
@@ -326,15 +330,30 @@ regelt** — sonst würden zwei Schreiber um denselben Tagesverlauf konkurrieren
 
 | Entität | Typ | Bedeutung |
 |---|---|---|
+| **Aktuelle Intensität** | `sensor` | Was der Tagesverlauf **gerade jetzt** vorgibt, interpoliert auf die Gerätezeit. |
 | **Betriebsmodus** | `sensor` | `normal`, `manual_intensity` oder `guard` — wer gerade den Tagesverlauf bestimmt. |
 | **Spot_SiriusPro 1–3** | `sensor` | Temperatur des jeweiligen LED-Moduls in °C. |
 | **Spot_SiriusPro 1–3 Verbindung** | `binary_sensor` | Ob das Modul antwortet. |
 | **Stromaufnahme (Rohwert)** | `sensor` | ADC-Rohwert des Geräts, ohne Einheit. |
-| **Auslastung** | `sensor` | Derselbe Wert als Prozentsatz der Obergrenze. |
+| **Stromauslastung** | `sensor` | Derselbe Wert als Prozentsatz der Gerätegrenze. **Keine Helligkeitsangabe** — siehe unten. |
 | **Stromwarnung** | `binary_sensor` | Warn- oder Gefahrenschwelle des Geräts überschritten. |
 | **Wächter-Zustand** | `sensor` | `disabled`, `idle`, `reducing`, `holding` oder `recovering`. |
 | **Wächter-Reduktion** | `sensor` | Aktuelle Absenkung in Prozent. |
 | **Farben** | `sensor` | Anzahl der Farben; die Zusammensetzungen stehen in den Attributen. |
+
+### Drei Zahlen, die leicht zu verwechseln sind
+
+| Entität | Was sie zeigt | Beispiel um 11:11 Uhr |
+|---|---|---|
+| `number` **Intensität** | die Reglerstellung, also die **Tagesspitze** | 70,0 |
+| `sensor` **Aktuelle Intensität** | was die Kurve **jetzt** vorgibt | 64,45 |
+| `sensor` **Stromauslastung** | gemessene Stromaufnahme gegen die Gerätegrenze | 54,4 % |
+
+Die **Stromauslastung ist keine Helligkeit.** Selbst bei Intensität 100 läge sie
+nur bei rund 66 %, und bei Intensität 0 bleiben etwa 6 % Grundlast für die
+Elektronik. Sie hängt zudem vom Spektrum ab: Farben mit viel Weiß ziehen mehr
+Strom als rein blaue. Als Kennzahl taugt sie zur Überwachung der Hardware, nicht
+zur Beurteilung der Helligkeit.
 
 ### Was ein „Spot" ist
 
@@ -360,7 +379,26 @@ heißeste Modul**, nicht den Mittelwert.
 
 ---
 
-## Farben ansehen
+## Farben ansehen und bearbeiten
+
+### Bearbeiten ohne YAML
+
+1. **Farbe bearbeiten** auf die gewünschte Farbe stellen
+2. Die sechs Kanalregler ziehen
+3. **Farbe speichern** drücken
+
+Die Regler schreiben bewusst erst in einen Puffer. Das ist kein Umweg, sondern
+Hardwareschutz: Jeder Schreibvorgang ist ein Flash-Zugriff auf die Leuchte, und
+eine einzige Reglerbewegung erzeugte sonst Dutzende davon. Derselbe Ablauf wie
+in der Geräteoberfläche, wo man ebenfalls anpasst und dann speichert.
+
+Ein Wechsel der Farbe verwirft einen offenen Puffer. **Farbe speichern** und
+**Änderungen verwerfen** sind nur verfügbar, solange es etwas zu speichern gibt.
+
+Jede dieser Entitäten führt im Attribut `hex` eine Näherungsfarbe — als
+Vorbereitung für eine spätere Lovelace-Karte mit farbigen Feldern.
+
+### Anzeigen
 
 Eine eigene Lovelace-Komponente brauchst du dafür **nicht**. Alle Angaben liegen
 als Attribute vor und lassen sich mit einer Markdown-Karte darstellen.

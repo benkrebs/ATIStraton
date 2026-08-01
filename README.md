@@ -32,7 +32,7 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - [Setup](#setup)
 - [Usage](#usage)
 - [All entities](#all-entities)
-- [Viewing colours](#viewing-colours)
+- [Viewing and editing colours](#viewing-and-editing-colours)
 - [How writes are kept safe](#how-writes-are-kept-safe)
 - [Risks and warnings](#risks-and-warnings)
 - [Device security findings](#device-security-findings)
@@ -310,6 +310,10 @@ entity IDs follow the name you give that device.
 | **Guard cut-off temperature** | `number` | Reduction starts at or above this value. |
 | **Guard release temperature** | `number` | Reduction is unwound below this value. |
 | **Guard reduction step** | `number` | Percentage removed per control step. |
+| **Colour to edit** | `select` | Which of the ten colours the channel sliders edit. |
+| **Channel V, RB, B, C, W, R** | `number` | Share of that channel, 0–255. Writes to a buffer, **not** straight to the device. |
+| **Save colour** | `button` | Transfers the buffer. Only available when there is something to save. |
+| **Discard changes** | `button` | Reloads the device values. |
 
 Lighting, Intensity and Light program are **locked while the guard is engaged** —
 otherwise two writers would compete for the same schedule.
@@ -318,15 +322,29 @@ otherwise two writers would compete for the same schedule.
 
 | Entity | Type | Meaning |
 |---|---|---|
+| **Current intensity** | `sensor` | What the daily curve prescribes **right now**, interpolated against device time. |
 | **Operating mode** | `sensor` | `normal`, `manual_intensity` or `guard` — who currently drives the daily curve. |
 | **Spot_SiriusPro 1–3** | `sensor` | Temperature of that LED module in °C. |
 | **Spot_SiriusPro 1–3 connection** | `binary_sensor` | Whether the module responds. |
 | **Power draw (raw)** | `sensor` | The device's raw ADC value, unitless. |
-| **Load** | `sensor` | The same value as a percentage of the ceiling. |
+| **Power load** | `sensor` | The same value as a percentage of the device ceiling. **Not a brightness figure** — see below. |
 | **Current warning** | `binary_sensor` | Device warning or danger threshold exceeded. |
 | **Guard state** | `sensor` | `disabled`, `idle`, `reducing`, `holding` or `recovering`. |
 | **Guard reduction** | `sensor` | Current reduction in percent. |
 | **Colours** | `sensor` | Number of colours; the compositions are in the attributes. |
+
+### Three numbers that are easy to confuse
+
+| Entity | What it shows | Example at 11:11 |
+|---|---|---|
+| `number` **Intensity** | the slider position, i.e. the **daily peak** | 70.0 |
+| `sensor` **Current intensity** | what the curve prescribes **now** | 64.45 |
+| `sensor` **Power load** | measured current draw against the device ceiling | 54.4 % |
+
+**Power load is not brightness.** Even at intensity 100 it would only reach
+about 66 %, and at intensity 0 roughly 6 % baseline remains for the electronics.
+It also depends on the spectrum: colours with a lot of white draw more current
+than purely blue ones. It is a hardware monitoring figure, not a brightness one.
 
 ### What a "spot" is
 
@@ -352,7 +370,26 @@ hottest module**, not the average.
 
 ---
 
-## Viewing colours
+## Viewing and editing colours
+
+### Editing without YAML
+
+1. Set **Colour to edit** to the colour you want
+2. Drag the six channel sliders
+3. Press **Save colour**
+
+The sliders deliberately write to a buffer first. That is not a detour but
+hardware protection: every write is a flash access on the fixture, and a single
+slider drag would otherwise produce dozens. It mirrors the device's own
+interface, where you also adjust and then save.
+
+Switching colours discards an open buffer. **Save colour** and **Discard
+changes** are only available while there is something to save.
+
+Each of these entities carries an approximate colour in its `hex` attribute — in
+preparation for a later Lovelace card with coloured swatches.
+
+### Displaying
 
 You do **not** need a custom Lovelace component for this. Everything is exposed
 as attributes and can be rendered with a Markdown card.

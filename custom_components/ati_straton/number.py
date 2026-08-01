@@ -34,6 +34,8 @@ from .intensity import (
     current_intensity,
     max_value_org,
 )
+from .programs import MAX_CHANNEL_VALUE, MIN_CHANNEL_VALUE
+from .spectrum import channel_hex
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -43,6 +45,9 @@ class StratonNumberDescription(NumberEntityDescription):
     field: str
     value_fn: Callable[[GuardianConfig], float]
 
+
+DISPLAY_NAMES = {"LC": "C"}
+"""Kanäle, deren Beschriftung am Gerät vom Schlüssel abweicht."""
 
 GUARDIAN_NUMBERS: tuple[StratonNumberDescription, ...] = (
     StratonNumberDescription(
@@ -97,7 +102,67 @@ async def async_setup_entry(
         StratonGuardianNumber(coordinator, description)
         for description in GUARDIAN_NUMBERS
     )
+    # Ein Regler je Kanal, den das Gerät tatsächlich besitzt.
+    entities.extend(
+        StratonColorChannelNumber(coordinator, channel)
+        for channel in sorted(
+            {
+                value.get("name")
+                for color in coordinator.data.colors
+                for value in color.get("values") or ()
+                if isinstance(value.get("name"), str)
+            }
+        )
+    )
     async_add_entities(entities)
+
+
+class StratonColorChannelNumber(StratonEntity, NumberEntity):
+    """Ein Kanal der gerade zur Bearbeitung gewählten Farbe.
+
+    Schreibt **nicht** zum Gerät, sondern in einen Puffer. Erst der
+    Speichern-Knopf überträgt. Ohne diese Trennung erzeugte jede
+    Reglerbewegung einen Flash-Schreibvorgang auf der Leuchte.
+    """
+
+    _attr_native_min_value = float(MIN_CHANNEL_VALUE)
+    _attr_native_max_value = float(MAX_CHANNEL_VALUE)
+    _attr_native_step = 1.0
+    _attr_mode = NumberMode.SLIDER
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: StratonCoordinator, channel: str) -> None:
+        super().__init__(coordinator, f"color_channel_{channel.lower()}")
+        self._channel = channel
+        # Kanal LC heißt in der Geräteoberfläche C — die Beschriftung folgt
+        # dem Gerät, der Schlüssel bleibt LC.
+        self._attr_name = f"Kanal {DISPLAY_NAMES.get(channel, channel)}"
+
+    @property
+    def native_value(self) -> float | None:
+        return self.coordinator.color_buffer.get(self._channel)
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and not self.coordinator.guard_engaged
+            and self._channel in self.coordinator.color_buffer
+        )
+
+    async def async_set_native_value(self, value: float) -> None:
+        self.coordinator.set_buffered_channel(self._channel, int(value))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        color = self.coordinator.edited_color
+        return {
+            "channel": self._channel,
+            "hex": channel_hex(self._channel),
+            "color": color.name if color else None,
+            "on_device": color.composition.get(self._channel) if color else None,
+            "unsaved_changes": self.coordinator.color_buffer_dirty,
+        }
 
 
 class StratonIntensityNumber(StratonEntity, NumberEntity):

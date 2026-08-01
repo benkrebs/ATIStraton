@@ -47,7 +47,7 @@
         "name": "Stromaufnahme (Rohwert)"
       },
       "current_load": {
-        "name": "Auslastung"
+        "name": "Stromauslastung"
       },
       "guard_state": {
         "name": "Wächter-Zustand"
@@ -65,6 +65,9 @@
       },
       "colors": {
         "name": "Farben"
+      },
+      "current_intensity": {
+        "name": "Aktuelle Intensität"
       }
     },
     "switch": {
@@ -95,6 +98,17 @@
       },
       "acclimatisation": {
         "name": "Gewöhnungsstufe"
+      },
+      "color_to_edit": {
+        "name": "Farbe bearbeiten"
+      }
+    },
+    "button": {
+      "save_color": {
+        "name": "Farbe speichern"
+      },
+      "discard_color": {
+        "name": "Änderungen verwerfen"
       }
     }
   },

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
-from homeassistant.const import STATE_UNKNOWN
+from homeassistant.const import STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -13,6 +13,7 @@ from . import StratonConfigEntry
 from .coordinator import StratonCoordinator
 from .entity import StratonEntity
 from .programs import ProgramError
+from .spectrum import NEUTRAL, mix_hex
 
 DEFAULT_LEVEL_INDEX = 1
 """Ohne frühere Auswahl: „Lichtgewöhnt", die mittlere der drei Stufen."""
@@ -25,7 +26,52 @@ async def async_setup_entry(
 ) -> None:
     coordinator = entry.runtime_data
     level = StratonAcclimatisationSelect(coordinator)
-    async_add_entities([StratonProgramSelect(coordinator, level), level])
+    async_add_entities(
+        [
+            StratonProgramSelect(coordinator, level),
+            level,
+            StratonColorEditSelect(coordinator),
+        ]
+    )
+
+
+class StratonColorEditSelect(StratonEntity, SelectEntity):
+    """Wählt die Farbe, die über die Kanalregler bearbeitet wird.
+
+    Ein Wechsel verwirft einen offenen Bearbeitungsstand — sonst würde man
+    unbemerkt Werte der einen Farbe in eine andere schreiben.
+    """
+
+    _attr_translation_key = "color_to_edit"
+    _attr_icon = "mdi:palette-swatch"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: StratonCoordinator) -> None:
+        super().__init__(coordinator, "color_to_edit")
+
+    @property
+    def options(self) -> list[str]:
+        return [color.name for color in self.coordinator.colors]
+
+    @property
+    def current_option(self) -> str | None:
+        color = self.coordinator.edited_color
+        return color.name if color else None
+
+    async def async_select_option(self, option: str) -> None:
+        self.coordinator.select_color_for_edit(option)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        color = self.coordinator.edited_color
+        buffer = self.coordinator.color_buffer
+        return {
+            "hex": mix_hex(buffer) or NEUTRAL,
+            "hex_on_device": (mix_hex(color.composition) or NEUTRAL) if color else None,
+            "unsaved_changes": self.coordinator.color_buffer_dirty,
+            "buffer": dict(buffer),
+            "on_device": dict(color.composition) if color else {},
+        }
 
 
 class StratonAcclimatisationSelect(StratonEntity, SelectEntity, RestoreEntity):

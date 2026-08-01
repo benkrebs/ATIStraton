@@ -47,7 +47,7 @@
         "name": "Power draw (raw)"
       },
       "current_load": {
-        "name": "Load"
+        "name": "Power load"
       },
       "guard_state": {
         "name": "Guard state"
@@ -65,6 +65,9 @@
       },
       "colors": {
         "name": "Colours"
+      },
+      "current_intensity": {
+        "name": "Current intensity"
       }
     },
     "switch": {
@@ -95,6 +98,17 @@
       },
       "acclimatisation": {
         "name": "Acclimatisation level"
+      },
+      "color_to_edit": {
+        "name": "Colour to edit"
+      }
+    },
+    "button": {
+      "save_color": {
+        "name": "Save colour"
+      },
+      "discard_color": {
+        "name": "Discard changes"
       }
     }
   },

@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from custom_components.ati_straton.intensity import (
     IntensityError,
     current_intensity,
+    intensity_at,
     max_value_org,
     node_values,
     rescaled_by_factor,
@@ -187,3 +188,39 @@ class TestFactorRescaling:
     ) -> None:
         with pytest.raises(IntensityError):
             rescaled_by_factor(timelines, bad)
+
+
+class TestIntensityAt:
+    """Interpolation der Tageskurve auf eine Uhrzeit."""
+
+    def test_peak_at_noon(self, timelines: list[dict]) -> None:
+        """Die Fixture erreicht ihr Maximum um 11:15 mit 65."""
+        assert intensity_at(timelines, 11 * 3600 + 15 * 60) == 65.0
+
+    def test_night_is_dark(self, timelines: list[dict]) -> None:
+        assert intensity_at(timelines, 3 * 3600) == 0.0
+        assert intensity_at(timelines, 23 * 3600) == 0.0
+
+    def test_interpolates_between_nodes(self, timelines: list[dict]) -> None:
+        """09:00 steht auf 0, 10:00 auf 48.75 — 09:30 muss dazwischen liegen."""
+        value = intensity_at(timelines, 9 * 3600 + 1800)
+        assert 0 < value < 48.75
+        assert value == pytest.approx(24.375, abs=0.01)
+
+    def test_exact_node_times_return_the_node_value(
+        self, timelines: list[dict]
+    ) -> None:
+        assert intensity_at(timelines, 10 * 3600) == 48.75
+
+    def test_wraps_around_midnight(self, timelines: list[dict]) -> None:
+        assert intensity_at(timelines, 86400) == intensity_at(timelines, 0)
+        assert intensity_at(timelines, 86400 + 3600) == intensity_at(timelines, 3600)
+
+    def test_never_exceeds_the_curve(self, timelines: list[dict]) -> None:
+        peak = current_intensity(timelines)
+        for second in range(0, 86400, 60):
+            assert 0 <= intensity_at(timelines, second) <= peak
+
+    def test_empty_input_is_none(self) -> None:
+        assert intensity_at([], 0) is None
+        assert intensity_at([{"nodes": []}], 0) is None

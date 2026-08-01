@@ -21,6 +21,7 @@ auch mit korrektem Engine.IO-3-Protokoll.
 from __future__ import annotations
 
 import copy
+import itertools
 import logging
 from collections.abc import Sequence
 from typing import Any
@@ -129,6 +130,55 @@ def rescaled_by_factor(
                 # verlieren.
                 node["value"] = round(float(value) * factor, 3)
     return result
+
+
+SECONDS_PER_DAY = 86400
+
+
+def intensity_at(
+    timelines: Sequence[dict[str, Any]], seconds_of_day: float
+) -> float | None:
+    """Intensität, die der Tagesverlauf zur angegebenen Uhrzeit vorgibt.
+
+    Zwischen zwei Stützpunkten wird linear interpoliert — so zeichnet die
+    Geräteoberfläche ihre Kurve, und die Messungen decken sich damit.
+
+    Das ist etwas anderes als :func:`current_intensity`, die den **höchsten**
+    Wert der Kurve liefert, also die Reglerstellung. Hier geht es um den Wert
+    *jetzt*.
+
+    Args:
+        seconds_of_day: Sekunden seit Mitternacht, ``0`` bis ``86400``.
+
+    Returns:
+        ``None``, wenn kein verwertbarer Stützpunkt vorliegt.
+    """
+    points = sorted(
+        (float(node["time"]), float(node["value"]))
+        for timeline in timelines
+        for node in timeline.get("nodes") or ()
+        if isinstance(node.get("time"), (int, float))
+        and isinstance(node.get("value"), (int, float))
+    )
+    if not points:
+        return None
+
+    moment = float(seconds_of_day) % SECONDS_PER_DAY
+
+    # Vor dem ersten oder hinter dem letzten Stützpunkt: Randwert halten. Die
+    # Kurve beginnt und endet am Gerät ohnehin bei 00:00 und 24:00.
+    if moment <= points[0][0]:
+        return round(points[0][1], 2)
+    if moment >= points[-1][0]:
+        return round(points[-1][1], 2)
+
+    for (t0, v0), (t1, v1) in itertools.pairwise(points):
+        if t0 <= moment <= t1:
+            if t1 == t0:
+                return round(v1, 2)
+            ratio = (moment - t0) / (t1 - t0)
+            return round(v0 + (v1 - v0) * ratio, 2)
+    return round(points[-1][1], 2)
 
 
 def node_values(timelines: Sequence[dict[str, Any]]) -> list[float]:

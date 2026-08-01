@@ -37,6 +37,7 @@ from .intensity import (
     MIN_INTENSITY,
     IntensityError,
     current_intensity,
+    intensity_at,
     max_value_org,
     node_values,
     rescaled_by_factor,
@@ -174,6 +175,9 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         # Intensität vor dem Ausschalten, damit das Einschalten sie
         # wiederherstellen kann.
         self._intensity_before_off: float | None = None
+        # Farb-Editor: ausgewählte Farbe und ungespeicherter Bearbeitungsstand.
+        self._color_edit_id: int | None = None
+        self._color_buffer: dict[str, int] = {}
         # Sprachdatei des Geräts passend zur Home-Assistant-Sprache.
         self._language = "de_DE" if hass.config.language.startswith("de") else "en_US"
         self._write_lock = asyncio.Lock()
@@ -461,6 +465,25 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         return parse_colors(self.data.colors, self.data.translations)
 
     @property
+    def intensity_now(self) -> float | None:
+        """Intensität, die der Tagesverlauf **gerade jetzt** vorgibt.
+
+        Nicht zu verwechseln mit der Reglerstellung, die den Tagesspitzenwert
+        angibt. Grundlage ist die Gerätezeit aus ``/api/timeinfo``, damit eine
+        abweichende Uhr am Gerät nicht zu falschen Werten führt.
+        """
+        timestamp = self.data.timeinfo.get("ts")
+        if not isinstance(timestamp, (int, float)):
+            return None
+        local = dt_util.utc_from_timestamp(timestamp / 1000)
+        offset = self.data.timeinfo.get("offset")
+        if isinstance(offset, (int, float)):
+            # getTimezoneOffset liefert Minuten mit umgekehrtem Vorzeichen.
+            local -= timedelta(minutes=offset)
+        seconds = local.hour * 3600 + local.minute * 60 + local.second
+        return intensity_at(self.data.timelines, seconds)
+
+    @property
     def schedule_colors(self) -> list[ColorPreset]:
         """Farben, die der aktuelle Tagesverlauf verwendet."""
         return colors_in_schedule(self.data.timelines, self.data.translations)
@@ -532,6 +555,69 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
                 if isinstance(value := response.get(key), list) and value:
                     return value
         return None
+
+    # ------------------------------------------------------- Farb-Editor
+
+    @property
+    def edited_color(self) -> ColorPreset | None:
+        """Farbe, die gerade zur Bearbeitung ausgewählt ist."""
+        if self._color_edit_id is None:
+            return next(iter(self.colors), None)
+        return next((c for c in self.colors if c.id == self._color_edit_id), None)
+
+    @property
+    def color_buffer(self) -> dict[str, int]:
+        """Bearbeitungsstand der ausgewählten Farbe.
+
+        Die Regler schreiben hierhin, **nicht** zum Gerät. Erst der
+        Speichern-Knopf überträgt. Ohne diesen Puffer erzeugte jede
+        Reglerbewegung einen Flash-Schreibvorgang.
+        """
+        if not self._color_buffer and (color := self.edited_color) is not None:
+            self._color_buffer = dict(color.composition)
+        return self._color_buffer
+
+    @property
+    def color_buffer_dirty(self) -> bool:
+        """True, wenn der Puffer vom Gerätestand abweicht."""
+        color = self.edited_color
+        return color is not None and self.color_buffer != color.composition
+
+    def select_color_for_edit(self, name: str) -> None:
+        """Wählt eine Farbe aus und verwirft einen offenen Bearbeitungsstand."""
+        color = next((c for c in self.colors if c.name == name), None)
+        if color is None:
+            raise HomeAssistantError(f"Unbekannte Farbe: {name}")
+        self._color_edit_id = color.id
+        self._color_buffer = dict(color.composition)
+        self.async_update_listeners()
+
+    def set_buffered_channel(self, channel: str, value: int) -> None:
+        """Ändert einen Kanal im Puffer, ohne zum Gerät zu schreiben."""
+        buffer = self.color_buffer
+        if channel not in buffer:
+            raise HomeAssistantError(
+                f"Kanal {channel!r} gehört nicht zu dieser Farbe; "
+                f"vorhanden sind {sorted(buffer)}"
+            )
+        buffer[channel] = int(value)
+        self.async_update_listeners()
+
+    def discard_color_buffer(self) -> None:
+        """Verwirft den Bearbeitungsstand und lädt die Gerätewerte zurück."""
+        self._color_buffer = {}
+        self.async_update_listeners()
+
+    async def async_save_color_buffer(self) -> None:
+        """Überträgt den Bearbeitungsstand zum Gerät."""
+        color = self.edited_color
+        if color is None:
+            raise HomeAssistantError("Keine Farbe ausgewählt")
+        if not self.color_buffer_dirty:
+            _LOGGER.debug("Farbe %s unverändert, kein Schreibvorgang", color.name)
+            return
+        await self.async_set_color(color.id, dict(self.color_buffer))
+        self._color_buffer = {}
 
     async def async_set_color(self, color_id: int, values: dict[str, int]) -> None:
         """Ändert die Zusammensetzung einer Farbe.

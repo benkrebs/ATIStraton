@@ -83,12 +83,35 @@ async def async_setup_entry(
         if "_id" in spot
     )
 
+    entities.append(StratonCurrentIntensitySensor(coordinator))
     entities.append(StratonModeSensor(coordinator))
     entities.append(StratonGuardianStateSensor(coordinator))
     entities.append(StratonGuardianReductionSensor(coordinator))
     entities.append(StratonColorsSensor(coordinator))
 
     async_add_entities(entities)
+
+
+class StratonCurrentIntensitySensor(StratonEntity, SensorEntity):
+    """Intensität, die der Tagesverlauf **gerade jetzt** vorgibt.
+
+    Nicht zu verwechseln mit dem Regler ``Intensität``, der den Tagesspitzenwert
+    setzt, und erst recht nicht mit ``Stromauslastung``, die die gemessene
+    Stromaufnahme gegen die Gerätegrenze angibt.
+    """
+
+    _attr_translation_key = "current_intensity"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:brightness-percent"
+
+    def __init__(self, coordinator: StratonCoordinator) -> None:
+        super().__init__(coordinator, "current_intensity")
+
+    @property
+    def native_value(self) -> float | None:
+        return self.coordinator.intensity_now
 
 
 class StratonModeSensor(StratonEntity, SensorEntity):
