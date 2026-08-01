@@ -31,6 +31,8 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - [Installation](#installation)
 - [Setup](#setup)
 - [Usage](#usage)
+- [All entities](#all-entities)
+- [Viewing colours](#viewing-colours)
 - [How writes are kept safe](#how-writes-are-kept-safe)
 - [Risks and warnings](#risks-and-warnings)
 - [Device security findings](#device-security-findings)
@@ -50,6 +52,12 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - Power draw and load percentage, including the device's warning and danger
   thresholds
 - Operating mode — see [Operating mode](#operating-mode)
+
+### Turning the light on and off
+
+A **Lighting** `switch` sets intensity to 0 and restores the last active value
+when switched back on. The daily curve is preserved throughout. The device has
+no real power switch.
 
 ### Intensity control
 
@@ -282,6 +290,129 @@ device's colour data and are probably not usable as keys.
 
 Set the cut-off **below** the device's own temperature limit (60 °C by default),
 otherwise two control loops fight each other.
+
+---
+
+## All entities
+
+The integration creates **one** device that everything hangs off. The exact
+entity IDs follow the name you give that device.
+
+### Controls
+
+| Entity | Type | Meaning |
+|---|---|---|
+| **Lighting** | `switch` | Off sets intensity to 0, On restores the last active value. The daily curve is preserved throughout, it is merely scaled to zero. The device has no real power switch. |
+| **Intensity** | `number` | Global brightness 0–100 %. Behaves like the slider in the device's interface and preserves the shape of the curve. |
+| **Light program** | `select` | Loads a program. **Overwrites the daily curve.** Attributes carry the program list, the colours in use and the full schedule. |
+| **Acclimatisation level** | `select` | Acclimatisation phase, light-adapted or high-light adapted. Takes effect on the next program change. |
+| **Temperature guard** | `switch` | Turns automatic reduction on heat on and off. |
+| **Guard cut-off temperature** | `number` | Reduction starts at or above this value. |
+| **Guard release temperature** | `number` | Reduction is unwound below this value. |
+| **Guard reduction step** | `number` | Percentage removed per control step. |
+
+Lighting, Intensity and Light program are **locked while the guard is engaged** —
+otherwise two writers would compete for the same schedule.
+
+### Readings
+
+| Entity | Type | Meaning |
+|---|---|---|
+| **Operating mode** | `sensor` | `normal`, `manual_intensity` or `guard` — who currently drives the daily curve. |
+| **Spot_SiriusPro 1–3** | `sensor` | Temperature of that LED module in °C. |
+| **Spot_SiriusPro 1–3 connection** | `binary_sensor` | Whether the module responds. |
+| **Power draw (raw)** | `sensor` | The device's raw ADC value, unitless. |
+| **Load** | `sensor` | The same value as a percentage of the ceiling. |
+| **Current warning** | `binary_sensor` | Device warning or danger threshold exceeded. |
+| **Guard state** | `sensor` | `disabled`, `idle`, `reducing`, `holding` or `recovering`. |
+| **Guard reduction** | `sensor` | Current reduction in percent. |
+| **Colours** | `sensor` | Number of colours; the compositions are in the attributes. |
+
+### What a "spot" is
+
+The Straton is **one** fixture containing several LED modules. The device calls
+them *spots*; *SiriusPro* is the model name of those modules. They are not
+separate lamps — the integration groups them under the same device.
+
+On the test unit (153 cm) there are three modules, each using two DMX addresses:
+
+| Module | Addresses | Example temperature |
+|---|---|---|
+| Spot_SiriusPro 1 | 1 + 2 | 40.8 °C |
+| Spot_SiriusPro 2 | 3 + 4 | 39.7 °C |
+| Spot_SiriusPro 3 | 5 + 6 | 38.9 °C |
+
+Each module has its **own temperature sensor** and reports its connection
+separately — hence three temperatures and three connection sensors. Shorter or
+longer models have correspondingly fewer or more modules.
+
+One module running consistently warmer than the others is normal and depends on
+its position inside the fixture. The **temperature guard always evaluates the
+hottest module**, not the average.
+
+---
+
+## Viewing colours
+
+You do **not** need a custom Lovelace component for this. Everything is exposed
+as attributes and can be rendered with a Markdown card.
+
+### All colours with their composition
+
+```yaml
+type: markdown
+content: |
+  {% set colors = state_attr('sensor.ati_straton_colours', 'colors') %}
+  | Colour | V | RB | B | C | W | R |
+  |---|--:|--:|--:|--:|--:|--:|
+  {% for c in colors -%}
+  | {{ c.name }} | {{ c.composition.V }} | {{ c.composition.RB }} |
+  {{- c.composition.B }} | {{ c.composition.LC }} | {{ c.composition.W }} |
+  {{- c.composition.R }} |
+  {% endfor %}
+```
+
+Column **C** carries the internal key `LC` — see
+[Colour channels](#colour-channels).
+
+### Colours used by the selected program
+
+A program rarely uses all colours. On the test device it is three out of ten:
+
+```yaml
+type: markdown
+content: |
+  {% set p = 'select.ati_straton_light_program' %}
+  ### {{ states(p) }}
+
+  {% for c in state_attr(p, 'colors_in_use') -%}
+  **{{ c.name }}** — {% for k, v in c.composition.items() %}{{ k }} {{ v }}{{ ", " if not loop.last }}{% endfor %}
+  {% endfor %}
+```
+
+### Daily schedule with colour changes
+
+```yaml
+type: markdown
+content: |
+  | Time | Intensity | Colour |
+  |---|--:|---|
+  {% for e in state_attr('select.ati_straton_light_program', 'schedule') -%}
+  | {{ e.time }} | {{ e.intensity }} | {{ e.color }} |
+  {% endfor %}
+```
+
+On the test device this produces a table like the following — `Farbe E` in
+the morning, `Farbe D` during the day, back again in the evening:
+
+| Time | Intensity | Colour |
+|---|--:|---|
+| 09:00 | 0 | Farbe E |
+| 10:00 | 52.71 | Farbe E |
+| 12:00 | 70.0 | Farbe D |
+| 19:08 | 49.41 | Farbe D |
+| 20:11 | 49.41 | Farbe E |
+| 22:30 | 0 | Farbe E |
 
 ---
 

@@ -70,6 +70,9 @@
     "switch": {
       "temperature_guard": {
         "name": "Temperature guard"
+      },
+      "power": {
+        "name": "Lighting"
       }
     },
     "number": {

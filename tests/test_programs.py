@@ -19,9 +19,11 @@ from custom_components.ati_straton.programs import (
     DEFAULT_START,
     ProgramError,
     build_load_payload,
+    colors_in_schedule,
     derive_timerange,
     parse_colors,
     parse_programs,
+    schedule_overview,
     with_updated_color,
 )
 
@@ -258,3 +260,59 @@ class TestColors:
                 next(c for c in parse_colors(updated) if c.id == 5).composition["W"]
                 == value
             )
+
+
+class TestScheduleColors:
+    """Welche Farben verwendet der aktuelle Tagesverlauf?"""
+
+    def test_only_colors_actually_used_are_returned(
+        self, timelines: list[dict], colors: list[dict]
+    ) -> None:
+        used = colors_in_schedule(timelines)
+        assert 0 < len(used) < len(colors), "Ein Programm nutzt nur einen Teil"
+
+    def test_names_match_the_device(self, timelines: list[dict]) -> None:
+        assert {c.name for c in colors_in_schedule(timelines)} == {
+            "Farbe A",
+            "Farbe E",
+            "Farbe D",
+        }
+
+    def test_compositions_are_included(self, timelines: list[dict]) -> None:
+        for color in colors_in_schedule(timelines):
+            assert color.composition
+            assert all(0 <= v <= 255 for v in color.composition.values())
+
+    def test_each_color_appears_once(self, timelines: list[dict]) -> None:
+        ids = [c.id for c in colors_in_schedule(timelines)]
+        assert len(ids) == len(set(ids))
+
+    def test_empty_schedule_yields_nothing(self) -> None:
+        assert colors_in_schedule([]) == []
+        assert colors_in_schedule([{"nodes": []}]) == []
+
+    def test_nodes_without_colour_are_skipped(self) -> None:
+        assert colors_in_schedule([{"nodes": [{"time": 0, "value": 0}]}]) == []
+
+
+class TestScheduleOverview:
+    def test_one_entry_per_node(self, timelines: list[dict]) -> None:
+        overview = schedule_overview(timelines)
+        assert len(overview) == len(timelines[0]["nodes"])
+
+    def test_entries_are_sorted_by_time(self, timelines: list[dict]) -> None:
+        seconds = [entry["seconds"] for entry in schedule_overview(timelines)]
+        assert seconds == sorted(seconds)
+
+    def test_times_are_formatted_readably(self, timelines: list[dict]) -> None:
+        overview = schedule_overview(timelines)
+        assert overview[0]["time"] == "00:00"
+        assert any(entry["time"] == "09:00" for entry in overview)
+
+    def test_intensity_and_colour_are_carried_over(self, timelines: list[dict]) -> None:
+        peak = max(schedule_overview(timelines), key=lambda e: e["intensity"])
+        assert peak["intensity"] == 65.0
+        assert peak["color"] == "Farbe D"
+
+    def test_malformed_nodes_are_skipped(self) -> None:
+        assert schedule_overview([{"nodes": [{"value": 1}]}]) == []

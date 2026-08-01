@@ -34,8 +34,6 @@ async def async_setup_entry(
     if data.has_adc:
         entities.append(StratonCurrentWarningSensor(coordinator))
 
-    entities.append(StratonPreviewActiveSensor(coordinator))
-
     async_add_entities(entities)
 
 
@@ -81,16 +79,3 @@ class StratonCurrentWarningSensor(StratonEntity, BinarySensorEntity):
             "warn_threshold": current.get("warn"),
             "max_threshold": current.get("max"),
         }
-
-
-class StratonPreviewActiveSensor(StratonEntity, BinarySensorEntity):
-    """Zeigt an, ob das Gerät im Preview-Override statt im Automatikbetrieb läuft."""
-
-    _attr_name = "Manueller Modus"
-
-    def __init__(self, coordinator: StratonCoordinator) -> None:
-        super().__init__(coordinator, "preview_active")
-
-    @property
-    def is_on(self) -> bool:
-        return self.coordinator.data.preview_active

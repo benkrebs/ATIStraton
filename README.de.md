@@ -21,6 +21,8 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 > dem Tierbestand schaden, der davon abhängt. Die Nutzung erfolgt vollständig
 > auf eigene Gefahr.** Bitte vor der Installation
 > [Risiken und Warnhinweise](#risiken-und-warnhinweise) lesen.
+> Der Code ist überwiegend KI-generiert. Hilfe und Verbesserungen sind sehr
+> willkommen.
 
 ---
 
@@ -31,6 +33,8 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - [Installation](#installation)
 - [Einrichtung](#einrichtung)
 - [Nutzung](#nutzung)
+- [Alle Entitäten](#alle-entitäten)
+- [Farben ansehen](#farben-ansehen)
 - [Wie Schreibvorgänge abgesichert sind](#wie-schreibvorgänge-abgesichert-sind)
 - [Risiken und Warnhinweise](#risiken-und-warnhinweise)
 - [Sicherheitsbefunde am Gerät](#sicherheitsbefunde-am-gerät)
@@ -50,6 +54,12 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - Stromaufnahme und Auslastung in Prozent, inklusive der geräteeigenen Warn- und
   Gefahrenschwelle
 - Betriebsmodus — siehe [Betriebsmodus](#betriebsmodus)
+
+### Ein- und Ausschalten
+
+Ein `switch` **Beleuchtung** setzt die Intensität auf 0 und stellt beim
+Einschalten den zuletzt aktiven Wert wieder her. Der Tagesverlauf bleibt dabei
+erhalten. Einen echten Netzschalter kennt das Gerät nicht.
 
 ### Intensitätssteuerung
 
@@ -288,6 +298,129 @@ des Testgeräts nicht auf und sind als Schlüssel vermutlich nicht verwendbar.
 
 Die Abregeltemperatur sollte **unterhalb** der geräteeigenen Grenze liegen (ab
 Werk 60 °C), sonst arbeiten zwei Regelungen gegeneinander.
+
+---
+
+## Alle Entitäten
+
+Die Integration legt **ein** Gerät an, unter dem alles hängt. Die genauen
+Entitäts-IDs richten sich nach dem Namen, den du dem Gerät gibst.
+
+### Steuern
+
+| Entität | Typ | Bedeutung |
+|---|---|---|
+| **Beleuchtung** | `switch` | Aus setzt die Intensität auf 0, Ein stellt den zuletzt aktiven Wert wieder her. Der Tagesverlauf bleibt dabei erhalten, er wird nur auf null skaliert. Das Gerät kennt keinen echten Netzschalter. |
+| **Intensität** | `number` | Globale Helligkeit 0–100 %. Wirkt wie der Regler der Geräteoberfläche und behält die Form der Tageskurve. |
+| **Lichtprogramm** | `select` | Lädt ein Programm. **Überschreibt den Tagesverlauf.** Attribute enthalten die Programmliste, die verwendeten Farben und den kompletten Verlauf. |
+| **Gewöhnungsstufe** | `select` | Eingewöhnungsphase, Lichtgewöhnt oder Starklichtgewöhnt. Wirkt erst beim nächsten Programmwechsel. |
+| **Temperaturwächter** | `switch` | Schaltet die automatische Absenkung bei Hitze ein und aus. |
+| **Wächter Abregeltemperatur** | `number` | Ab diesem Wert wird abgesenkt. |
+| **Wächter Freigabetemperatur** | `number` | Darunter wird die Absenkung zurückgenommen. |
+| **Wächter Reduktionsschritt** | `number` | Absenkung je Regelschritt in Prozent. |
+
+Beleuchtung, Intensität und Lichtprogramm sind **gesperrt, solange der Wächter
+regelt** — sonst würden zwei Schreiber um denselben Tagesverlauf konkurrieren.
+
+### Beobachten
+
+| Entität | Typ | Bedeutung |
+|---|---|---|
+| **Betriebsmodus** | `sensor` | `normal`, `manual_intensity` oder `guard` — wer gerade den Tagesverlauf bestimmt. |
+| **Spot_SiriusPro 1–3** | `sensor` | Temperatur des jeweiligen LED-Moduls in °C. |
+| **Spot_SiriusPro 1–3 Verbindung** | `binary_sensor` | Ob das Modul antwortet. |
+| **Stromaufnahme (Rohwert)** | `sensor` | ADC-Rohwert des Geräts, ohne Einheit. |
+| **Auslastung** | `sensor` | Derselbe Wert als Prozentsatz der Obergrenze. |
+| **Stromwarnung** | `binary_sensor` | Warn- oder Gefahrenschwelle des Geräts überschritten. |
+| **Wächter-Zustand** | `sensor` | `disabled`, `idle`, `reducing`, `holding` oder `recovering`. |
+| **Wächter-Reduktion** | `sensor` | Aktuelle Absenkung in Prozent. |
+| **Farben** | `sensor` | Anzahl der Farben; die Zusammensetzungen stehen in den Attributen. |
+
+### Was ein „Spot" ist
+
+Die Straton ist **eine** Leuchte, in der mehrere LED-Module stecken. Das Gerät
+nennt sie *Spots*; *SiriusPro* ist die Modellbezeichnung dieser Module. Es sind
+keine getrennten Leuchten — die Integration legt sie unter demselben Gerät an.
+
+Beim Testgerät (153 cm) sind es drei Module, die je zwei DMX-Adressen belegen:
+
+| Modul | Adressen | Beispieltemperatur |
+|---|---|---|
+| Spot_SiriusPro 1 | 1 + 2 | 40,8 °C |
+| Spot_SiriusPro 2 | 3 + 4 | 39,7 °C |
+| Spot_SiriusPro 3 | 5 + 6 | 38,9 °C |
+
+Jedes Modul hat einen **eigenen Temperaturfühler** und meldet seine Verbindung
+getrennt — daher dreimal Temperatur und dreimal Verbindung. Kürzere oder längere
+Modelle haben entsprechend weniger oder mehr Module.
+
+Dass ein Modul dauerhaft wärmer ist als die anderen, ist normal und hängt von
+seiner Position in der Leuchte ab. Der **Temperaturwächter bewertet immer das
+heißeste Modul**, nicht den Mittelwert.
+
+---
+
+## Farben ansehen
+
+Eine eigene Lovelace-Komponente brauchst du dafür **nicht**. Alle Angaben liegen
+als Attribute vor und lassen sich mit einer Markdown-Karte darstellen.
+
+### Alle Farben mit ihrer Zusammensetzung
+
+```yaml
+type: markdown
+content: |
+  {% set colors = state_attr('sensor.ati_straton_farben', 'colors') %}
+  | Farbe | V | RB | B | C | W | R |
+  |---|--:|--:|--:|--:|--:|--:|
+  {% for c in colors -%}
+  | {{ c.name }} | {{ c.composition.V }} | {{ c.composition.RB }} |
+  {{- c.composition.B }} | {{ c.composition.LC }} | {{ c.composition.W }} |
+  {{- c.composition.R }} |
+  {% endfor %}
+```
+
+Die Spalte **C** trägt intern den Schlüssel `LC` — siehe
+[Farbkanäle](#farbkanäle).
+
+### Farben des gewählten Programms
+
+Ein Programm nutzt selten alle Farben. Beim Testgerät sind es drei von zehn:
+
+```yaml
+type: markdown
+content: |
+  {% set p = 'select.ati_straton_lichtprogramm' %}
+  ### {{ states(p) }}
+
+  {% for c in state_attr(p, 'colors_in_use') -%}
+  **{{ c.name }}** — {% for k, v in c.composition.items() %}{{ k }} {{ v }}{{ ", " if not loop.last }}{% endfor %}
+  {% endfor %}
+```
+
+### Tagesverlauf mit Farbwechseln
+
+```yaml
+type: markdown
+content: |
+  | Uhrzeit | Intensität | Farbe |
+  |---|--:|---|
+  {% for e in state_attr('select.ati_straton_lichtprogramm', 'schedule') -%}
+  | {{ e.time }} | {{ e.intensity }} | {{ e.color }} |
+  {% endfor %}
+```
+
+Ergibt beim Testgerät eine Tabelle wie diese — morgens `Farbe E`, tagsüber
+`Farbe D`, abends zurück:
+
+| Uhrzeit | Intensität | Farbe |
+|---|--:|---|
+| 09:00 | 0 | Farbe E |
+| 10:00 | 52,71 | Farbe E |
+| 12:00 | 70,0 | Farbe D |
+| 19:08 | 49,41 | Farbe D |
+| 20:11 | 49,41 | Farbe E |
+| 22:30 | 0 | Farbe E |
 
 ---
 

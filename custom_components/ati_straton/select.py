@@ -138,6 +138,12 @@ class StratonProgramSelect(StratonEntity, SelectEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
+        """Auswahlliste, verwendete Farben und der Tagesverlauf.
+
+        ``colors_in_use`` beantwortet, welche Spektren das gewählte Programm
+        tatsächlich fährt — meist nur zwei bis drei der zehn verfügbaren.
+        ``schedule`` zeigt, wann welche davon greift.
+        """
         return {
             "programs": [
                 {
@@ -148,5 +154,14 @@ class StratonProgramSelect(StratonEntity, SelectEntity):
                     "custom": program.is_custom,
                 }
                 for program in self.coordinator.programs
-            ]
+            ],
+            "colors_in_use": [
+                {
+                    "id": color.id,
+                    "name": color.name,
+                    "composition": color.composition,
+                }
+                for color in self.coordinator.schedule_colors
+            ],
+            "schedule": self.coordinator.schedule,
         }

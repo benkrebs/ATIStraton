@@ -278,6 +278,54 @@ def parse_colors(
     return result
 
 
+def colors_in_schedule(
+    timelines: Sequence[Mapping[str, Any]],
+    translations: Mapping[str, str] | None = None,
+) -> list[ColorPreset]:
+    """Farben, die der aktuelle Tagesverlauf tatsächlich verwendet.
+
+    Jeder Kurvenknoten trägt sein vollständiges Farbpreset. Ein Programm nutzt
+    typischerweise nur zwei bis drei davon — etwa ein kühleres Spektrum für den
+    Tag und ein wärmeres für die Dämmerung.
+
+    Die Reihenfolge folgt dem ersten Auftreten im Tagesverlauf, nicht der
+    Reihenfolge in ``/api/colors``.
+    """
+    seen: dict[int, Mapping[str, Any]] = {}
+    for timeline in timelines:
+        for node in timeline.get("nodes") or ():
+            color = node.get("color")
+            if isinstance(color, Mapping) and "_id" in color:
+                seen.setdefault(int(color["_id"]), color)
+    return parse_colors(list(seen.values()), translations)
+
+
+def schedule_overview(
+    timelines: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Der Tagesverlauf als flache Liste: Uhrzeit, Intensität, Farbe.
+
+    ``time`` kommt vom Gerät in Sekunden seit Mitternacht und wird zusätzlich
+    als ``HH:MM`` ausgegeben, damit es ohne Umrechnung lesbar ist.
+    """
+    overview: list[dict[str, Any]] = []
+    for timeline in timelines:
+        for node in timeline.get("nodes") or ():
+            seconds = node.get("time")
+            if not isinstance(seconds, (int, float)):
+                continue
+            color = node.get("color")
+            overview.append(
+                {
+                    "time": f"{int(seconds) // 3600:02d}:{int(seconds) % 3600 // 60:02d}",
+                    "seconds": int(seconds),
+                    "intensity": round(float(node.get("value", 0)), 2),
+                    "color": color.get("name") if isinstance(color, Mapping) else None,
+                }
+            )
+    return sorted(overview, key=lambda entry: entry["seconds"])
+
+
 def with_updated_color(
     colors: Sequence[Mapping[str, Any]],
     color_id: int,

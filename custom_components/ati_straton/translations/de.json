@@ -70,6 +70,9 @@
     "switch": {
       "temperature_guard": {
         "name": "Temperaturwächter"
+      },
+      "power": {
+        "name": "Beleuchtung"
       }
     },
     "number": {

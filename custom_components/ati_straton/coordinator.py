@@ -34,8 +34,10 @@ from .const import (
 from .guardian import GuardianConfig, GuardianDecision, TemperatureGuardian
 from .intensity import (
     MAX_INTENSITY,
+    MIN_INTENSITY,
     IntensityError,
     current_intensity,
+    max_value_org,
     node_values,
     rescaled_by_factor,
     scaled_timelines,
@@ -44,9 +46,11 @@ from .programs import (
     ColorPreset,
     Program,
     build_load_payload,
+    colors_in_schedule,
     derive_timerange,
     parse_colors,
     parse_programs,
+    schedule_overview,
     with_updated_color,
 )
 from .socket_client import StratonSocketClient
@@ -167,6 +171,9 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         # Wird gesetzt, sobald die Intensität über die Integration verändert
         # wurde, und beim Laden eines Programms wieder zurückgenommen.
         self._manual_intensity = False
+        # Intensität vor dem Ausschalten, damit das Einschalten sie
+        # wiederherstellen kann.
+        self._intensity_before_off: float | None = None
         # Sprachdatei des Geräts passend zur Home-Assistant-Sprache.
         self._language = "de_DE" if hass.config.language.startswith("de") else "en_US"
         self._write_lock = asyncio.Lock()
@@ -396,6 +403,51 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
             self._manual_intensity = True
             _LOGGER.info("Intensität auf %.1f gesetzt", intensity)
 
+    # ----------------------------------------------------------- Ein/Aus
+
+    @property
+    def is_on(self) -> bool:
+        """True, sobald der Tagesverlauf irgendwo über 0 liegt."""
+        return current_intensity(self.data.timelines) > 0
+
+    @property
+    def intensity_before_off(self) -> float | None:
+        """Zuletzt vor dem Ausschalten aktive Intensität."""
+        return self._intensity_before_off
+
+    def restore_intensity_before_off(self, value: float | None) -> None:
+        """Übernimmt den gemerkten Wert nach einem Neustart."""
+        if value is not None and MIN_INTENSITY < value <= MAX_INTENSITY:
+            self._intensity_before_off = value
+
+    async def async_turn_off(self) -> None:
+        """Schaltet die Leuchte aus, indem die Intensität auf 0 gesetzt wird.
+
+        Die vorherige Intensität wird gemerkt, damit das Einschalten sie
+        wiederherstellen kann. Der Tagesverlauf selbst bleibt erhalten — nur
+        skaliert auf 0.
+        """
+        current = current_intensity(self.data.timelines)
+        if current > 0:
+            self._intensity_before_off = current
+        await self.async_set_intensity(MIN_INTENSITY)
+
+    async def async_turn_on(self) -> None:
+        """Stellt die Intensität wieder her, die vor dem Ausschalten galt.
+
+        Ohne gemerkten Wert — etwa weil die Leuchte schon vor der Einrichtung
+        aus war — wird auf den Bezugswert des Profils zurückgegangen, also auf
+        das, was das Programm als volle Helligkeit vorsieht.
+        """
+        target = self._intensity_before_off
+        if target is None:
+            target = max_value_org(self.data.timelines) or MAX_INTENSITY
+            _LOGGER.debug(
+                "Kein gemerkter Wert vorhanden, schalte auf den Profilbezug %.1f",
+                target,
+            )
+        await self.async_set_intensity(min(target, MAX_INTENSITY))
+
     # ------------------------------------------------------ Programme/Farben
 
     @property
@@ -407,6 +459,16 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
     def colors(self) -> list[ColorPreset]:
         """Verfügbare Farben mit ihrer Zusammensetzung."""
         return parse_colors(self.data.colors, self.data.translations)
+
+    @property
+    def schedule_colors(self) -> list[ColorPreset]:
+        """Farben, die der aktuelle Tagesverlauf verwendet."""
+        return colors_in_schedule(self.data.timelines, self.data.translations)
+
+    @property
+    def schedule(self) -> list[dict[str, Any]]:
+        """Tagesverlauf als Liste aus Uhrzeit, Intensität und Farbe."""
+        return schedule_overview(self.data.timelines)
 
     def find_program(self, label: str) -> Program | None:
         return next((p for p in self.programs if p.label == label), None)
