@@ -54,6 +54,11 @@ class StratonSpotOnlineSensor(StratonEntity, BinarySensorEntity):
         reading = self.coordinator.data.readings.get(self._external_id)
         return None if reading is None else reading.online
 
+    @property
+    def available(self) -> bool:
+        """Ohne aktuelle Telemetrie ist über die Erreichbarkeit nichts bekannt."""
+        return super().available and not self.coordinator.data.telemetry_stale
+
 
 class StratonCurrentWarningSensor(StratonEntity, BinarySensorEntity):
     """Warn- und Gefahrenschwelle der Stromaufnahme."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import copy
 import logging
 import time
@@ -27,8 +28,12 @@ from .api import (
 from .const import (
     DOMAIN,
     PUSH_THROTTLE_SECONDS,
+    SOCKET_RETRY_MAX_SECONDS,
+    SOCKET_RETRY_MIN_SECONDS,
+    SOCKET_STABLE_SECONDS,
     STATIC_ENDPOINTS,
     STORAGE_VERSION,
+    TELEMETRY_STALE_SECONDS,
     VOLATILE_ENDPOINTS,
 )
 from .guardian import GuardianConfig, GuardianDecision, TemperatureGuardian
@@ -107,6 +112,10 @@ class StratonData:
     current: dict[str, Any] = field(default_factory=dict)
     timeinfo: dict[str, Any] = field(default_factory=dict)
     readings: dict[str, SpotReading] = field(default_factory=dict)
+    # Monotone Zeitbasis der letzten Telemetriemeldung. Ohne sie wäre nicht
+    # unterscheidbar, ob ein Messwert aktuell ist oder nur der letzte vor einem
+    # Verbindungsabriss.
+    readings_at: float | None = None
     # Geräteübersetzung (lang/lang-de_DE.json), löst Schlüssel wie
     # PRESETTING_TITLE_8_1 in lesbare Namen auf.
     translations: dict[str, str] = field(default_factory=dict)
@@ -124,8 +133,28 @@ class StratonData:
         return bool(self.status.get("isColorPreview"))
 
     @property
+    def telemetry_age(self) -> float | None:
+        """Alter der letzten Temperaturmeldung in Sekunden."""
+        if self.readings_at is None:
+            return None
+        return max(0.0, time.monotonic() - self.readings_at)
+
+    @property
+    def telemetry_stale(self) -> bool:
+        """True, wenn die Telemetrie zu alt ist, um noch als gültig zu gelten."""
+        age = self.telemetry_age
+        return age is None or age > TELEMETRY_STALE_SECONDS
+
+    @property
     def max_temperature(self) -> float | None:
-        """Höchste aktuell gemeldete Spot-Temperatur — Eingang des Wächters."""
+        """Höchste aktuell gemeldete Spot-Temperatur — Eingang des Wächters.
+
+        Bei veralteter Telemetrie ``None``: Der Wächter darf nicht auf einer
+        eingefrorenen Messung weiterregeln. ``None`` lässt ihn eine bestehende
+        Absenkung halten und keine neue beginnen — die sichere Richtung.
+        """
+        if self.telemetry_stale:
+            return None
         values = [
             reading.temperature
             for reading in self.readings.values()
@@ -164,6 +193,12 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         self.data = StratonData()
 
         self.socket: StratonSocketClient | None = None
+        self._socket_task: asyncio.Task[None] | None = None
+        self._socket_closing = False
+        # Erzwingt vor dem nächsten Verbindungsaufbau eine neue Anmeldung —
+        # gesetzt, wenn das Gerät die Session beendet hat oder ein Versuch
+        # gescheitert ist.
+        self._relogin_needed = False
         self.guardian = TemperatureGuardian(guardian_config)
         self._max_intensity = max_intensity
         # Exakter Stand vor dem Eingriff des Wächters; dient zugleich als
@@ -268,6 +303,7 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
                 temperature=sample.get("t"),
                 online=bool(sample.get("o")),
             )
+        data.readings_at = time.monotonic()
 
     async def _load_volatile(self, data: StratonData) -> None:
         for endpoint in VOLATILE_ENDPOINTS:
@@ -281,36 +317,120 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
 
     # ------------------------------------------------------------------ Push
 
+    @property
+    def push_connected(self) -> bool:
+        """True, solange der Push-Kanal steht."""
+        return self.socket is not None and self.socket.connected
+
     async def async_start_socket(self) -> None:
-        """Startet den Push-Kanal. Ein Fehlschlag degradiert auf reines Polling."""
-        socket = StratonSocketClient(
-            self.client.base_url,
-            self.client.cookies,
-            on_temperatures=self._handle_temperature_spots,
-            on_reload=lambda: self.hass.async_create_task(self.async_request_refresh()),
-            on_logout=self._handle_logout,
-        )
-        try:
-            await socket.async_connect()
-        except Exception as err:  # noqa: BLE001 - Push ist optional
-            _LOGGER.warning(
-                "Socket-Verbindung fehlgeschlagen (%s); Integration läuft im "
-                "Polling-Betrieb weiter",
-                err,
-            )
+        """Startet den Push-Kanal und hält ihn dauerhaft am Leben.
+
+        Der Kanal ist die **einzige** Quelle der Temperaturtelemetrie: Die
+        Historie unter ``/api/temperatures`` ist mit rund 78 kB zu schwer für
+        das Polling-Intervall (NFR-02). Ein abgerissener Socket ließ deshalb
+        früher alle Messwerte auf ihrem letzten Stand stehen, ohne dass etwas
+        das bemerkt hätte — sichtbar wurde es erst am unplausiblen Wert. Die
+        Aufsicht unten baut die Verbindung deshalb selbsttätig wieder auf.
+        """
+        if self._socket_task is not None:
             return
-        self.socket = socket
+        self._socket_closing = False
+        self._socket_task = self.config_entry.async_create_background_task(
+            self.hass, self._async_socket_supervisor(), f"{DOMAIN}-socket"
+        )
+
+    async def _async_socket_supervisor(self) -> None:
+        """Hält den Push-Kanal offen und verbindet nach einem Abriss neu."""
+        delay = SOCKET_RETRY_MIN_SECONDS
+        while not self._socket_closing:
+            socket = StratonSocketClient(
+                self.client.base_url,
+                self._async_socket_cookie,
+                on_temperatures=self._handle_temperature_spots,
+                on_reload=lambda: self.hass.async_create_task(
+                    self.async_request_refresh()
+                ),
+                on_logout=self._handle_logout,
+            )
+            try:
+                await socket.async_connect()
+            except Exception as err:  # noqa: BLE001 - Push darf nie hochschlagen
+                await socket.async_disconnect()
+                # Ein gescheiterter Versuch kann auch an einer serverseitig
+                # verworfenen Session liegen; der nächste holt sich deshalb ein
+                # frisches Cookie.
+                self._relogin_needed = True
+                _LOGGER.warning(
+                    "Push-Verbindung fehlgeschlagen (%s); nächster Versuch in "
+                    "%.0f s. Bis dahin läuft die Integration im Polling-Betrieb, "
+                    "ohne Temperaturmesswerte",
+                    err,
+                    delay,
+                )
+                await asyncio.sleep(delay)
+                delay = min(delay * 2, SOCKET_RETRY_MAX_SECONDS)
+                continue
+
+            self.socket = socket
+            connected_at = time.monotonic()
+            _LOGGER.debug("Push-Kanal steht")
+            self.async_update_listeners()
+
+            await socket.async_wait_closed()
+
+            self.socket = None
+            await socket.async_disconnect()
+            if self._socket_closing:
+                break
+
+            # Die Wartezeit nur zurücksetzen, wenn die Verbindung auch wirklich
+            # getragen hat. Sonst führte ein Gerät, das die Verbindung sofort
+            # wieder fallen lässt, zu einem Dauertakt von Neuversuchen.
+            if time.monotonic() - connected_at >= SOCKET_STABLE_SECONDS:
+                delay = SOCKET_RETRY_MIN_SECONDS
+            _LOGGER.warning(
+                "Push-Verbindung zum Gerät abgerissen; baue sie in %.0f s neu auf",
+                delay,
+            )
+            self.async_update_listeners()
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, SOCKET_RETRY_MAX_SECONDS)
+
+    async def _async_socket_cookie(self) -> str:
+        """Liefert das Session-Cookie für einen Verbindungsaufbau.
+
+        Nach einem ``logout`` des Geräts oder einem gescheiterten Versuch wird
+        vorher neu angemeldet — ein verworfenes Cookie würde sonst bei jedem
+        Wiederverbinden erneut abgelehnt.
+        """
+        if self._relogin_needed or not self.client.cookies.get("connect.sid"):
+            await self.client.async_login()
+            self._relogin_needed = False
+        return self.client.cookies.get("connect.sid", "")
 
     async def async_stop_socket(self) -> None:
         """Beendet den Push-Kanal und verlässt zuvor den Preview-Modus (NFR-10)."""
-        if self.socket is None:
-            return
-        try:
-            await self.socket.async_disconnect()
-        finally:
+        self._socket_closing = True
+
+        if (task := self._socket_task) is not None:
+            self._socket_task = None
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+        if (socket := self.socket) is not None:
             self.socket = None
+            await socket.async_disconnect()
 
     def _handle_logout(self) -> None:
+        """Das Gerät hat die Session beendet.
+
+        Der bestehende Socket ist damit wertlos. Er wird geschlossen, worauf die
+        Aufsicht ihn mit einer frischen Anmeldung neu aufbaut.
+        """
+        self._relogin_needed = True
+        if (socket := self.socket) is not None:
+            self.hass.async_create_task(socket.async_disconnect())
         self.hass.async_create_task(self.async_request_refresh())
 
     def _handle_temperature_spots(self, payload: Any) -> None:
@@ -338,6 +458,7 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
                 raw_temperature=raw if isinstance(raw, list) else [],
                 online=entry.get("online"),
             )
+        data.readings_at = time.monotonic()
 
         decision = self.guardian.evaluate(data.max_temperature, time.monotonic())
         if decision.changed:

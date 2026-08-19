@@ -37,6 +37,7 @@ import contextlib
 import json
 import logging
 import re
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 from urllib.parse import urlsplit
@@ -57,6 +58,15 @@ SIO_EVENT = "2"
 SIO_ERROR = "4"
 
 CONNECT_TIMEOUT = 15.0
+
+# Vorgaben, falls der Handshake sie nicht mitliefert (Socket.IO 2.x meldet
+# üblicherweise 25000/60000 ms).
+DEFAULT_PING_INTERVAL = 25.0
+DEFAULT_PING_TIMEOUT = 60.0
+
+# Takt der Überwachungsschleife. Sie sendet das Ping und prüft, ob überhaupt
+# noch Daten eintreffen; beides braucht keine Sekundenauflösung.
+WATCHDOG_TICK = 5.0
 
 # Optionaler Namespace und optionale Ack-Nummer vor der JSON-Nutzlast.
 _PACKET_PREFIX = re.compile(
@@ -84,12 +94,26 @@ class SocketIO2Client:
         self._reader: asyncio.Task[None] | None = None
         self._heartbeat: asyncio.Task[None] | None = None
         self._connected = asyncio.Event()
-        self._ping_interval = 25.0
+        # Wird gesetzt, sobald die Leseschleife endet — gleich aus welchem
+        # Grund. Der Aufrufer wartet darauf und baut die Verbindung neu auf.
+        self.disconnected = asyncio.Event()
+        self._ping_interval = DEFAULT_PING_INTERVAL
+        self._ping_timeout = DEFAULT_PING_TIMEOUT
+        self._last_rx = 0.0
         self._closing = False
 
     @property
     def connected(self) -> bool:
         return self._ws is not None and not self._ws.closed and self._connected.is_set()
+
+    @property
+    def seconds_since_last_message(self) -> float | None:
+        """Alter des zuletzt empfangenen Frames, für Diagnose und Wächter."""
+        return None if not self._last_rx else time.monotonic() - self._last_rx
+
+    async def async_wait_closed(self) -> None:
+        """Wartet, bis die Verbindung abreißt oder geschlossen wird."""
+        await self.disconnected.wait()
 
     def on(self, event: str, handler: EventHandler) -> None:
         """Registriert einen Handler für ein Ereignis."""
@@ -106,6 +130,8 @@ class SocketIO2Client:
             self._session = aiohttp.ClientSession()
         self._closing = False
         self._connected.clear()
+        self.disconnected.clear()
+        self._last_rx = time.monotonic()
 
         try:
             self._ws = await self._session.ws_connect(
@@ -131,6 +157,7 @@ class SocketIO2Client:
         """Beendet die Verbindung und räumt die Hintergrundaufgaben ab."""
         self._closing = True
         self._connected.clear()
+        self.disconnected.set()
 
         for task in (self._heartbeat, self._reader):
             if task is not None and not task.done():
@@ -158,13 +185,38 @@ class SocketIO2Client:
         _LOGGER.debug("emit %s %s", event, data)
 
     async def _heartbeat_loop(self) -> None:
-        """In Engine.IO 3 sendet der **Client** das Ping."""
+        """Sendet das Ping und überwacht, ob die Gegenstelle noch antwortet.
+
+        In Engine.IO 3 sendet der **Client** das Ping. Entscheidend ist der
+        zweite Teil: Reißt die Verbindung auf halbem Weg ab — WLAN-Aussetzer,
+        NAT-Timeout, stiller Neustart des Geräts —, bleibt der Socket für
+        ``aiohttp`` weiter „offen“, liefert aber nie wieder ein Frame. Ohne
+        diese Prüfung bliebe die Leseschleife für immer hängen und alle
+        Messwerte stünden auf ihrem letzten Stand still.
+        """
+        last_ping = time.monotonic()
         try:
-            while not self._closing and self._ws is not None and not self._ws.closed:
-                await asyncio.sleep(self._ping_interval)
-                if self._ws.closed:
+            while not self._closing:
+                await asyncio.sleep(WATCHDOG_TICK)
+                ws = self._ws
+                if ws is None or ws.closed:
                     break
-                await self._ws.send_str(EIO_PING)
+
+                now = time.monotonic()
+                silence = now - self._last_rx
+                if silence > self._ping_timeout:
+                    _LOGGER.warning(
+                        "Seit %.0f s keine Daten vom Gerät (Grenze %.0f s); "
+                        "Verbindung gilt als tot und wird geschlossen",
+                        silence,
+                        self._ping_timeout,
+                    )
+                    await ws.close()
+                    break
+
+                if now - last_ping >= self._ping_interval:
+                    await ws.send_str(EIO_PING)
+                    last_ping = now
         except asyncio.CancelledError:
             raise
         except Exception as err:  # noqa: BLE001 - Heartbeat darf nie hochschlagen
@@ -174,6 +226,7 @@ class SocketIO2Client:
         assert self._ws is not None
         try:
             async for message in self._ws:
+                self._last_rx = time.monotonic()
                 if message.type is aiohttp.WSMsgType.TEXT:
                     await self._handle(message.data)
                 elif message.type in (
@@ -187,6 +240,7 @@ class SocketIO2Client:
             _LOGGER.debug("Leseschleife beendet: %s", err)
         finally:
             self._connected.clear()
+            self.disconnected.set()
 
     async def _handle(self, raw: str) -> None:
         if not raw:
@@ -221,6 +275,13 @@ class SocketIO2Client:
         interval = handshake.get("pingInterval")
         if isinstance(interval, (int, float)) and interval > 0:
             self._ping_interval = max(1.0, interval / 1000.0 * 0.9)
+        # pingTimeout ist die Frist, die der Server uns zugesteht. Sie hier als
+        # eigene Stillstandsgrenze zu übernehmen ist sinnvoll: Das Gerät sendet
+        # alle zwei Sekunden Telemetrie, so lange Schweigen bedeutet zuverlässig
+        # eine tote Verbindung.
+        timeout = handshake.get("pingTimeout")
+        if isinstance(timeout, (int, float)) and timeout > 0:
+            self._ping_timeout = max(self._ping_interval + 5.0, timeout / 1000.0)
 
     async def _handle_socketio(self, sio_type: str, body: str) -> None:
         if sio_type == SIO_CONNECT:

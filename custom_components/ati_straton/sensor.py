@@ -219,14 +219,28 @@ class StratonSpotTemperatureSensor(StratonEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._external_id in self.coordinator.data.readings
+        """Verfügbar nur bei aktueller Telemetrie.
+
+        Die Messwerte kommen ausschließlich über den Push-Kanal. Bricht er weg,
+        stünde der zuletzt empfangene Wert sonst unbegrenzt weiter als gültige
+        Temperatur da — ein eingefrorener Messwert ist schlechter als gar
+        keiner, weil er weder auffällt noch Automationen misstrauisch macht.
+        """
+        data = self.coordinator.data
+        return (
+            super().available
+            and self._external_id in data.readings
+            and not data.telemetry_stale
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         reading = self.coordinator.data.readings.get(self._external_id)
+        age = self.coordinator.data.telemetry_age
         return {
             "external_id": self._external_id,
             "raw_temperature": reading.raw_temperature if reading else None,
+            "telemetry_age": round(age, 1) if age is not None else None,
         }
 
 

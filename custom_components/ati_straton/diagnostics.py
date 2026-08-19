@@ -29,6 +29,16 @@ async def async_get_config_entry_diagnostics(
         "entry": async_redact_data(dict(entry.data), TO_REDACT),
         "options": dict(entry.options),
         "mode": coordinator.mode.value,
+        "push": {
+            "connected": coordinator.push_connected,
+            "telemetry_age": data.telemetry_age,
+            "telemetry_stale": data.telemetry_stale,
+            "seconds_since_last_message": (
+                coordinator.socket.seconds_since_last_message
+                if coordinator.socket is not None
+                else None
+            ),
+        },
         "guard": {
             "engaged": coordinator.guard_engaged,
             "state": coordinator.guardian.state.value,

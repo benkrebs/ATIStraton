@@ -367,6 +367,24 @@ One module running consistently warmer than the others is normal and depends on
 its position inside the fixture. The **temperature guard always evaluates the
 hottest module**, not the average.
 
+### When the push connection drops
+
+Temperatures arrive exclusively over the push channel — the history under
+`/api/temperatures` is around 78 kB and far too heavy to fetch on the polling
+interval. If the channel drops because the device reboots, Wi-Fi stalls or the
+session ends server-side, the following happens:
+
+| | |
+|---|---|
+| **Detection** | If no frame at all arrives for longer than the interval the device announces (60 s), the connection is considered dead. This also catches half-open connections that still look "open" to the operating system |
+| **Recovery** | The connection is rebuilt automatically, with a back-off from 5 s to 5 min and a **fresh login** if the device discarded the session |
+| **Marking** | Once readings are older than two minutes, the temperature and connection sensors become **unavailable** rather than continuing to present a frozen value as a valid temperature |
+| **Guard** | Without a current reading the temperature guard stops regulating. An existing reduction is held, a new one is not started — the safe direction |
+
+The rest of the integration — intensity, programs, colours — keeps running over
+HTTP regardless. The state of the channel is reported in the diagnostics data
+under `push`.
+
 ---
 
 ## Viewing and editing colours

@@ -376,6 +376,24 @@ Dass ein Modul dauerhaft wärmer ist als die anderen, ist normal und hängt von
 seiner Position in der Leuchte ab. Der **Temperaturwächter bewertet immer das
 heißeste Modul**, nicht den Mittelwert.
 
+### Wenn die Push-Verbindung abreißt
+
+Die Temperaturen kommen ausschließlich über den Push-Kanal — die Historie unter
+`/api/temperatures` ist mit rund 78 kB zu schwer, um sie im Polling-Takt
+abzurufen. Reißt der Kanal ab, weil das Gerät neu startet, das WLAN aussetzt
+oder die Session serverseitig endet, geschieht Folgendes:
+
+| | |
+|---|---|
+| **Erkennung** | Kommt länger als die vom Gerät gemeldete Frist (60 s) kein einziges Frame, gilt die Verbindung als tot. Das erfasst auch halb offene Verbindungen, die für das Betriebssystem weiter „offen“ aussehen |
+| **Wiederaufbau** | Die Verbindung wird selbsttätig neu aufgebaut, mit wachsender Wartezeit von 5 s bis 5 min und einer **frischen Anmeldung**, falls das Gerät die Session verworfen hat |
+| **Kennzeichnung** | Sind die Messwerte älter als zwei Minuten, werden Temperatur- und Verbindungssensoren **unverfügbar**, statt einen eingefrorenen Wert weiter als gültige Temperatur auszuweisen |
+| **Wächter** | Ohne aktuelle Messung regelt der Temperaturwächter nicht weiter. Eine bestehende Absenkung bleibt bestehen, eine neue wird nicht begonnen — die sichere Richtung |
+
+Der Rest der Integration — Intensität, Programme, Farben — läuft davon
+unberührt über HTTP weiter. Der Zustand des Kanals steht in den
+Diagnosedaten unter `push`.
+
 ---
 
 ## Farben ansehen und bearbeiten
