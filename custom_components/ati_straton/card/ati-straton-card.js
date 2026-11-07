@@ -31,6 +31,8 @@ const I18N = {
     intensity: "Intensität",
     preview: "Vorschau",
     now: "Jetzt",
+    colors: "Farben im Tagesverlauf",
+    from: "ab",
     lighting: "Beleuchtung",
     lightingSub: "Tagesverlauf bleibt erhalten",
     program: "Lichtprogramm",
@@ -74,6 +76,8 @@ const I18N = {
     intensity: "Intensity",
     preview: "Preview",
     now: "Now",
+    colors: "Colours in the daily curve",
+    from: "from",
     lighting: "Lighting",
     lightingSub: "Daily curve is kept",
     program: "Light program",
@@ -125,6 +129,8 @@ const ROLES = {
 };
 
 const UNAVAILABLE = new Set(["unavailable", "unknown"]);
+/** Wie spectrum.NEUTRAL: Farbe eines Knotens mit dunklem Spektrum. */
+const NEUTRAL = "#808080";
 
 const esc = (value) =>
   String(value ?? "").replace(
@@ -308,6 +314,9 @@ const STYLE = `
   .sw-dash { width: 18px; border-top: 2px dashed var(--asc-muted); }
   .sw-line { width: 18px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--asc-cyan), var(--asc-violet)); }
   .badge { color: var(--asc-now); }
+  .colors { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+  .colors:empty { display: none; }
+  .sw-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.85); box-sizing: border-box; }
 
   .switch {
     position: relative; width: 56px; height: 30px; border-radius: 15px; flex: none;
@@ -579,6 +588,7 @@ class AtiStratonCard extends HTMLElement {
             <div class="sub">${esc(t.dailyCurveSub)}</div>
             <div class="chart" id="chart"></div>
             <div class="legend" id="legend"></div>
+            <div class="legend colors" id="colors" aria-label="${esc(t.colors)}"></div>
           </div>
           <div class="side">
             <div class="tile" id="power-tile">
@@ -899,13 +909,20 @@ class AtiStratonCard extends HTMLElement {
 
     const schedule = this._state("program")?.attributes.schedule || [];
     const nodes = schedule
-      .map((e) => ({ t: num(e.seconds), v: num(e.intensity), o: num(e.original) }))
+      .map((e) => ({
+        t: num(e.seconds),
+        v: num(e.intensity),
+        o: num(e.original),
+        color: e.color || null,
+        hex: e.hex || null,
+      }))
       .filter((n) => n.t !== null && n.v !== null)
       .sort((a, b) => a.t - b.t);
 
     if (!nodes.length) {
       el.innerHTML = `<svg viewBox="0 0 ${W} ${H}"><text class="empty" x="${W / 2}" y="${H / 2}" text-anchor="middle">${esc(t.noCurve)}</text></svg>`;
       this._el("legend").innerHTML = "";
+      this._el("colors").innerHTML = "";
       return;
     }
 
@@ -976,6 +993,16 @@ class AtiStratonCard extends HTMLElement {
     }
     svg += `<path d="${linePath}" fill="none" stroke="url(#stroke-${uid})" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
 
+    // Stützpunkte in der Farbe ihres Spektrums. Gezeichnet auf der Kurve, wie
+    // sie gerade dargestellt wird – auch in der Vorschau.
+    nodes.forEach((n, i) => {
+      if (n.t < t0 || n.t > t1) return;
+      const fill = n.hex || NEUTRAL;
+      const tip = `${hhmm(n.t)} · ${this._fmt(current[i][1])} %${n.color ? ` · ${n.color}` : ""}`;
+      svg += `<circle class="node" cx="${X(n.t).toFixed(1)}" cy="${Y(current[i][1]).toFixed(1)}" r="5"
+        fill="${esc(fill)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"><title>${esc(tip)}</title></circle>`;
+    });
+
     // Markierung „Jetzt“. Die Zahl stammt vom Gerätesensor; nur während der
     // Vorschau wird sie aus der Kurve gerechnet.
     const now = this._nowSeconds();
@@ -1017,6 +1044,20 @@ class AtiStratonCard extends HTMLElement {
           ? `<span class="badge">${esc(t.guard)} −${this._fmt(reduction)} %</span>`
           : ""
       }`;
+
+    // Farblegende: jede Farbe einmal, in der Reihenfolge ihres Auftretens.
+    const seen = new Map();
+    for (const n of nodes) {
+      const key = n.color || n.hex;
+      if (key && !seen.has(key)) seen.set(key, n);
+    }
+    this._el("colors").innerHTML = [...seen.values()]
+      .map((n) => {
+        const from = nodes.find((x) => (x.color || x.hex) === (n.color || n.hex) && x.t >= t0);
+        const tip = from ? `${t.from} ${hhmm(from.t)}` : "";
+        return `<span title="${esc(tip)}"><i class="sw-dot" style="background:${esc(n.hex || NEUTRAL)}"></i>${esc(n.color || n.hex)}</span>`;
+      })
+      .join("");
   }
 
   _marker(x, y, label, { color, top, base, W, dashed }) {

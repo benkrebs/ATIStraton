@@ -331,6 +331,7 @@ stören nicht.
 | **Jetzt** | Wert des Sensors *Aktuelle Intensität*, platziert nach der **Gerätezeit**, nicht nach der Uhr des Browsers |
 | **Intensitätsregler** | Zeigt beim Ziehen eine Vorschau der skalierten Kurve und schreibt erst beim Loslassen — ein einziger Schreibvorgang statt Dutzender |
 | **Lichtprogramm** | Fragt vor dem Laden nach, weil das den Tagesverlauf ersetzt |
+| **Farbige Punkte** | Jeder Stützpunkt in der Farbe seines Spektrums (Näherung, gemischt wie bei den Kanalreglern). Die Legende unter dem Verlauf nennt alle verwendeten Farben |
 | **Module** | Temperatur je Modul; gelb ab der Freigabe-, rot ab der Abregeltemperatur des Wächters |
 
 Solange der Wächter regelt, sind Beleuchtung und Regler gesperrt, genau wie

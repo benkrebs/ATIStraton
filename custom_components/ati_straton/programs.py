@@ -31,6 +31,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from .spectrum import mix_hex
+
 _LOGGER = logging.getLogger(__name__)
 
 MIN_CHANNEL_VALUE = 0
@@ -311,6 +313,9 @@ def schedule_overview(
     ``original`` ist der unveränderliche ``valueOrg`` des Knotens — die Form,
     auf die sich der Intensitätsregler bezieht. Die Dashboard-Karte zeichnet
     daraus die Bezugskurve.
+
+    ``hex`` ist die Näherungsfarbe des Spektrums an diesem Knoten, gemischt
+    wie bei den Kanalreglern. ``None``, wenn das Spektrum dunkel ist.
     """
     overview: list[dict[str, Any]] = []
     for timeline in timelines:
@@ -330,9 +335,21 @@ def schedule_overview(
                     and not isinstance(value_org, bool)
                     else None,
                     "color": color.get("name") if isinstance(color, Mapping) else None,
+                    "hex": _node_hex(color),
                 }
             )
     return sorted(overview, key=lambda entry: entry["seconds"])
+
+
+def _node_hex(color: Any) -> str | None:
+    if not isinstance(color, Mapping):
+        return None
+    composition = {
+        str(value.get("name", "")): value.get("value")
+        for value in color.get("values") or ()
+        if isinstance(value, Mapping)
+    }
+    return mix_hex(composition)
 
 
 def with_updated_color(

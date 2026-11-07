@@ -322,6 +322,7 @@ not matter.
 | **Now** | Value of the *Current intensity* sensor, placed by **device time**, not browser time |
 | **Intensity slider** | Previews the scaled curve while dragging and writes only on release — one write instead of dozens |
 | **Light program** | Asks before loading, because that replaces the daily curve |
+| **Coloured dots** | Each node in the colour of its spectrum (approximation, mixed like the channel sliders). The legend below the curve names every colour the daily curve uses |
 | **Modules** | Temperature per module; yellow from the guard's release, red from its cut-off temperature |
 
 While the guard is active, lighting and slider are locked, just like the

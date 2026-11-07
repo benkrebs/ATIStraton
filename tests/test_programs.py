@@ -26,6 +26,7 @@ from custom_components.ati_straton.programs import (
     schedule_overview,
     with_updated_color,
 )
+from custom_components.ati_straton.spectrum import mix_hex
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -326,3 +327,20 @@ class TestScheduleOverview:
     def test_missing_original_is_none(self) -> None:
         entry = schedule_overview([{"nodes": [{"time": 0, "value": 1}]}])[0]
         assert entry["original"] is None
+
+    def test_node_colour_is_mixed_to_hex(self) -> None:
+        node = {
+            "time": 0,
+            "value": 1,
+            "color": {"name": "Blau", "values": [{"name": "B", "value": 200}]},
+        }
+        entry = schedule_overview([{"nodes": [node]}])[0]
+        assert entry["hex"] == mix_hex({"B": 200})
+        assert entry["hex"].startswith("#")
+
+    def test_dark_or_missing_colour_has_no_hex(self) -> None:
+        dark = {"name": "Aus", "values": [{"name": "B", "value": 0}]}
+        entries = schedule_overview(
+            [{"nodes": [{"time": 0, "value": 0, "color": dark}, {"time": 1}]}]
+        )
+        assert [e["hex"] for e in entries] == [None, None]
