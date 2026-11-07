@@ -59,6 +59,12 @@ class StratonSpotOnlineSensor(StratonEntity, BinarySensorEntity):
         """Ohne aktuelle Telemetrie ist über die Erreichbarkeit nichts bekannt."""
         return super().available and not self.coordinator.data.telemetry_stale
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        # Dieselbe Kennung trägt der Temperatursensor des Moduls; die
+        # Dashboard-Karte ordnet beide darüber einander zu.
+        return {"external_id": self._external_id}
+
 
 class StratonCurrentWarningSensor(StratonEntity, BinarySensorEntity):
     """Warn- und Gefahrenschwelle der Stromaufnahme."""

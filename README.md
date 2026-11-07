@@ -31,6 +31,7 @@ Developed and verified against a **Straton Flex G2 153** running firmware
 - [Installation](#installation)
 - [Setup](#setup)
 - [Usage](#usage)
+- [Dashboard card](#dashboard-card)
 - [All entities](#all-entities)
 - [Viewing and editing colours](#viewing-and-editing-colours)
 - [How writes are kept safe](#how-writes-are-kept-safe)
@@ -292,6 +293,47 @@ otherwise two control loops fight each other.
 
 ---
 
+## Dashboard card
+
+The integration ships its own card: daily intensity curve, lighting, intensity
+slider, light program, module temperatures and temperature guard at a glance.
+
+It is **delivered with the integration and registered automatically**. No entry
+under *Dashboard resources* and no separate HACS install is needed. After the
+first setup or an update, reload the browser once; the card then shows up in the
+card picker as **ATI Straton**.
+
+```yaml
+type: custom:ati-straton-card
+# all optional:
+device_id: 0123456789abcdef   # only with several devices
+title: Reef tank
+smooth: false                 # draw a smoothed instead of a linear curve
+full_day: false               # always 00:00–24:00 instead of the light window
+```
+
+The card finds its entities through the device itself; renamed entity IDs do
+not matter.
+
+| Element | Meaning |
+|---|---|
+| **Dashed curve** | The program's shape normalised to 100 % — the reference the intensity slider acts on |
+| **Filled curve** | What the device actually runs. A guard reduction shows up here |
+| **Now** | Value of the *Current intensity* sensor, placed by **device time**, not browser time |
+| **Intensity slider** | Previews the scaled curve while dragging and writes only on release — one write instead of dozens |
+| **Light program** | Asks before loading, because that replaces the daily curve |
+| **Modules** | Temperature per module; yellow from the guard's release, red from its cut-off temperature |
+
+While the guard is active, lighting and slider are locked, just like the
+underlying entities.
+
+The curve connects the nodes linearly, the way the device interpolates between
+them. `smooth: true` applies a monotone smoothing: no overshoot above a plateau
+and no value below zero, but between nodes it deviates slightly from what the
+device actually runs.
+
+---
+
 ## All entities
 
 The integration creates **one** device that everything hangs off. The exact
@@ -454,8 +496,8 @@ The exact entity IDs follow the name of your device.
 
 ### Displaying
 
-You do **not** need a custom Lovelace component for this. Everything is exposed
-as attributes and can be rendered with a Markdown card.
+Beyond the [dashboard card](#dashboard-card), everything is exposed as
+attributes and can be rendered with a Markdown card.
 
 ### All colours with their composition
 

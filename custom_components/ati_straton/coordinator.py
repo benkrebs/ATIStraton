@@ -605,6 +605,20 @@ class StratonCoordinator(DataUpdateCoordinator[StratonData]):
         return intensity_at(self.data.timelines, seconds)
 
     @property
+    def device_utc_offset(self) -> int | None:
+        """Zeitzonenversatz der Gerätezeit in Minuten, östlich positiv.
+
+        Damit kann die Dashboard-Karte die Gerätezeit selbst fortschreiben,
+        statt einen sekündlich wechselnden Zeitstempel als Attribut zu führen,
+        der bei jeder Abfrage einen Eintrag in der Recorder-Datenbank erzeugte.
+        """
+        offset = self.data.timeinfo.get("offset")
+        if isinstance(offset, bool) or not isinstance(offset, (int, float)):
+            return None
+        # getTimezoneOffset liefert Minuten mit umgekehrtem Vorzeichen.
+        return -int(offset)
+
+    @property
     def schedule_colors(self) -> list[ColorPreset]:
         """Farben, die der aktuelle Tagesverlauf verwendet."""
         return colors_in_schedule(self.data.timelines, self.data.translations)

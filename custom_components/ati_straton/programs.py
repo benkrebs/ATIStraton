@@ -307,6 +307,10 @@ def schedule_overview(
 
     ``time`` kommt vom Gerät in Sekunden seit Mitternacht und wird zusätzlich
     als ``HH:MM`` ausgegeben, damit es ohne Umrechnung lesbar ist.
+
+    ``original`` ist der unveränderliche ``valueOrg`` des Knotens — die Form,
+    auf die sich der Intensitätsregler bezieht. Die Dashboard-Karte zeichnet
+    daraus die Bezugskurve.
     """
     overview: list[dict[str, Any]] = []
     for timeline in timelines:
@@ -315,11 +319,16 @@ def schedule_overview(
             if not isinstance(seconds, (int, float)):
                 continue
             color = node.get("color")
+            value_org = node.get("valueOrg")
             overview.append(
                 {
                     "time": f"{int(seconds) // 3600:02d}:{int(seconds) % 3600 // 60:02d}",
                     "seconds": int(seconds),
                     "intensity": round(float(node.get("value", 0)), 2),
+                    "original": round(float(value_org), 2)
+                    if isinstance(value_org, (int, float))
+                    and not isinstance(value_org, bool)
+                    else None,
                     "color": color.get("name") if isinstance(color, Mapping) else None,
                 }
             )

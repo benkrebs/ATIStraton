@@ -113,6 +113,10 @@ class StratonCurrentIntensitySensor(StratonEntity, SensorEntity):
     def native_value(self) -> float | None:
         return self.coordinator.intensity_now
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"device_utc_offset": self.coordinator.device_utc_offset}
+
 
 class StratonModeSensor(StratonEntity, SensorEntity):
     """Betriebsmodus: wer bestimmt gerade den Tagesverlauf.

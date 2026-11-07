@@ -314,3 +314,15 @@ class TestScheduleOverview:
 
     def test_malformed_nodes_are_skipped(self) -> None:
         assert schedule_overview([{"nodes": [{"value": 1}]}]) == []
+
+    def test_original_value_is_carried_over(self, timelines: list[dict]) -> None:
+        # Die Dashboard-Karte zeichnet daraus die Bezugskurve.
+        overview = schedule_overview(timelines)
+        nodes = sorted(timelines[0]["nodes"], key=lambda n: n["time"])
+        assert [e["original"] for e in overview] == [
+            float(n["valueOrg"]) for n in nodes
+        ]
+
+    def test_missing_original_is_none(self) -> None:
+        entry = schedule_overview([{"nodes": [{"time": 0, "value": 1}]}])[0]
+        assert entry["original"] is None

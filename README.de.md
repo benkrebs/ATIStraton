@@ -33,6 +33,7 @@ Entwickelt und verifiziert gegen eine **Straton Flex G2 153** mit Firmware
 - [Installation](#installation)
 - [Einrichtung](#einrichtung)
 - [Nutzung](#nutzung)
+- [Dashboard-Karte](#dashboard-karte)
 - [Alle Entitäten](#alle-entitäten)
 - [Farben ansehen und bearbeiten](#farben-ansehen-und-bearbeiten)
 - [Wie Schreibvorgänge abgesichert sind](#wie-schreibvorgänge-abgesichert-sind)
@@ -300,6 +301,49 @@ Werk 60 °C), sonst arbeiten zwei Regelungen gegeneinander.
 
 ---
 
+## Dashboard-Karte
+
+Die Integration bringt eine eigene Karte mit: Tagesverlauf der Intensität,
+Beleuchtung, Intensitätsregler, Lichtprogramm, Modultemperaturen und
+Temperaturwächter auf einen Blick.
+
+Sie wird **mit der Integration ausgeliefert und selbsttätig angemeldet**. Ein
+Eintrag unter *Dashboard-Ressourcen* oder eine getrennte HACS-Installation ist
+nicht nötig. Nach der ersten Einrichtung oder einem Update einmal den Browser
+neu laden, dann steht sie im Kartendialog als **ATI Straton** zur Wahl.
+
+```yaml
+type: custom:ati-straton-card
+# alles optional:
+device_id: 0123456789abcdef   # nur bei mehreren Geräten
+title: Riffbecken
+smooth: false                 # Kurve geglättet statt linear zeichnen
+full_day: false               # immer 00:00–24:00 statt des Lichtfensters
+```
+
+Die Entitäten findet die Karte über das Gerät selbst; umbenannte Entitäts-IDs
+stören nicht.
+
+| Element | Bedeutung |
+|---|---|
+| **Gestrichelte Kurve** | Die Form des Programms auf 100 % normiert — der Bezug, auf den der Intensitätsregler wirkt |
+| **Gefüllte Kurve** | Was das Gerät tatsächlich fährt. Senkt der Wächter ab, sieht man es hier |
+| **Jetzt** | Wert des Sensors *Aktuelle Intensität*, platziert nach der **Gerätezeit**, nicht nach der Uhr des Browsers |
+| **Intensitätsregler** | Zeigt beim Ziehen eine Vorschau der skalierten Kurve und schreibt erst beim Loslassen — ein einziger Schreibvorgang statt Dutzender |
+| **Lichtprogramm** | Fragt vor dem Laden nach, weil das den Tagesverlauf ersetzt |
+| **Module** | Temperatur je Modul; gelb ab der Freigabe-, rot ab der Abregeltemperatur des Wächters |
+
+Solange der Wächter regelt, sind Beleuchtung und Regler gesperrt, genau wie
+die zugrunde liegenden Entitäten.
+
+Die gezeichnete Kurve verbindet die Stützpunkte linear, so wie das Gerät
+zwischen ihnen rechnet. `smooth: true` glättet sie monoton: Es entsteht kein
+Überschwingen über ein Plateau und kein Wert unter null, die Darstellung weicht
+zwischen den Stützpunkten aber leicht von dem ab, was das Gerät tatsächlich
+fährt.
+
+---
+
 ## Alle Entitäten
 
 Die Integration legt **ein** Gerät an, unter dem alles hängt. Die genauen
@@ -463,8 +507,8 @@ Die genauen Entitäts-IDs richten sich nach dem Namen deines Geräts.
 
 ### Anzeigen
 
-Eine eigene Lovelace-Komponente brauchst du dafür **nicht**. Alle Angaben liegen
-als Attribute vor und lassen sich mit einer Markdown-Karte darstellen.
+Neben der [Dashboard-Karte](#dashboard-karte) liegen alle Angaben als Attribute
+vor und lassen sich mit einer Markdown-Karte darstellen.
 
 ### Alle Farben mit ihrer Zusammensetzung
 
