@@ -251,25 +251,30 @@ class Curve {
 /* ------------------------------------------------------------------- Karte */
 
 const STYLE = `
+  /*
+   * Hintergrund, Rahmen, Schatten, Radius und Unschärfe der Karte kommen
+   * ausschließlich aus dem Theme (ha-card). Alle Farben leiten sich von
+   * Theme-Variablen ab, damit die Karte in hellen wie dunklen und in
+   * transparenten Themes lesbar bleibt.
+   */
   :host {
-    --asc-text: #eaf4f8;
-    --asc-muted: rgba(234, 244, 248, 0.62);
-    --asc-faint: rgba(234, 244, 248, 0.38);
-    --asc-tile: rgba(255, 255, 255, 0.06);
-    --asc-tile-border: rgba(255, 255, 255, 0.13);
-    --asc-cyan: #7fe3e6;
-    --asc-violet: #9d7cf2;
-    --asc-now: #f2846e;
-    --asc-ok: #7ee2a8;
-    --asc-warn: #f5c26b;
-    --asc-bg: linear-gradient(155deg, #33627f 0%, #22496a 48%, #183754 100%);
+    --asc-text: var(--primary-text-color);
+    --asc-muted: var(--secondary-text-color);
+    --asc-faint: var(--disabled-text-color, var(--secondary-text-color));
+    --asc-tile: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+    --asc-tile-border: var(--divider-color, color-mix(in srgb, var(--primary-text-color) 12%, transparent));
+    --asc-control: color-mix(in srgb, var(--primary-text-color) 18%, transparent);
+    --asc-accent: var(--primary-color);
+    --asc-cyan: var(--cyan-color, #2fd8d5);
+    --asc-violet: var(--purple-color, #a07af6);
+    --asc-now: var(--deep-orange-color, #ff7a63);
+    --asc-ok: var(--success-color, #43a047);
+    --asc-warn: var(--warning-color, #ffa600);
+    --asc-tooltip: color-mix(in srgb, var(--card-background-color, #fff) 92%, transparent);
   }
   ha-card {
     display: block;
-    background: var(--asc-bg);
     color: var(--asc-text);
-    border-radius: var(--ha-card-border-radius, 24px);
-    border: 1px solid var(--asc-tile-border);
     padding: 22px;
     box-sizing: border-box;
     container-type: inline-size;
@@ -280,7 +285,7 @@ const STYLE = `
     width: 46px; height: 46px; border-radius: 50%; flex: none;
     display: grid; place-items: center; cursor: pointer;
     background: var(--asc-tile); border: 1px solid var(--asc-tile-border);
-    color: var(--asc-cyan); --mdc-icon-size: 24px;
+    color: var(--asc-accent); --mdc-icon-size: 24px;
   }
   .title { font-size: 1.45rem; font-weight: 400; line-height: 1.2; }
   .status { display: flex; align-items: center; gap: 7px; font-size: 0.85rem; color: var(--asc-muted); margin-top: 3px; }
@@ -314,13 +319,13 @@ const STYLE = `
   .sw-dash { width: 18px; border-top: 2px dashed var(--asc-muted); }
   .sw-line { width: 18px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--asc-cyan), var(--asc-violet)); }
   .badge { color: var(--asc-now); }
-  .colors { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+  .colors { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--asc-tile-border); }
   .colors:empty { display: none; }
-  .sw-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.85); box-sizing: border-box; }
+  .sw-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--asc-muted) 55%, transparent); box-sizing: border-box; }
 
   .switch {
     position: relative; width: 56px; height: 30px; border-radius: 15px; flex: none;
-    background: rgba(255, 255, 255, 0.2); border: none; cursor: pointer; padding: 0;
+    background: var(--asc-control); border: none; cursor: pointer; padding: 0;
     transition: background 0.2s;
   }
   .switch::after {
@@ -328,17 +333,17 @@ const STYLE = `
     border-radius: 50%; background: #fff; transition: transform 0.2s;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
-  .switch[aria-checked="true"] { background: var(--asc-cyan); }
+  .switch[aria-checked="true"] { background: var(--asc-accent); }
   .switch[aria-checked="true"]::after { transform: translateX(26px); }
   .switch:disabled { cursor: not-allowed; }
 
-  .value { color: var(--asc-cyan); font-weight: 600; }
+  .value { color: var(--asc-accent); font-weight: 600; }
   input[type="range"] {
     --pct: 0%;
     -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 18px 0 4px;
     border-radius: 4px; outline: none; cursor: pointer;
     background: linear-gradient(90deg, var(--asc-cyan), var(--asc-violet)) 0 0 / var(--pct) 100% no-repeat,
-      rgba(255, 255, 255, 0.18);
+      var(--asc-control);
   }
   input[type="range"]:disabled { cursor: not-allowed; }
   input[type="range"]::-webkit-slider-thumb {
@@ -349,20 +354,25 @@ const STYLE = `
     width: 24px; height: 24px; border-radius: 50%;
     background: #fff; border: 3px solid var(--asc-violet); box-sizing: border-box;
   }
-  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(157, 124, 242, 0.4); }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--asc-violet) 40%, transparent); }
 
+  .select { position: relative; margin-top: 12px; }
+  .select.small { margin-top: 8px; }
+  /* Pfeil in Textfarbe des Themes; ein Hintergrundbild könnte sie nicht erben. */
+  .select::after {
+    content: ""; position: absolute; right: 16px; top: 50%; width: 7px; height: 7px;
+    border: solid var(--asc-text); border-width: 0 2px 2px 0;
+    transform: translateY(-70%) rotate(45deg); pointer-events: none;
+  }
   select {
-    width: 100%; margin-top: 12px; padding: 10px 40px 10px 14px; border-radius: 10px;
-    font: inherit; font-size: 0.92rem; color: var(--asc-text); color-scheme: dark;
-    background: rgba(10, 30, 50, 0.45)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23eaf4f8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-      no-repeat right 12px center / 20px;
+    width: 100%; padding: 10px 40px 10px 14px; border-radius: 10px;
+    font: inherit; font-size: 0.92rem; color: var(--asc-text);
+    background: var(--asc-tile);
     border: 1px solid var(--asc-tile-border); -webkit-appearance: none; appearance: none; cursor: pointer;
   }
+  select option, select optgroup { background: var(--card-background-color); color: var(--primary-text-color); }
   select:disabled { cursor: not-allowed; }
-  select.small { margin-top: 8px; font-size: 0.82rem; padding: 7px 36px 7px 12px; }
-  .level-row { display: flex; align-items: center; gap: 10px; }
-  .level-row select { flex: 1; }
+  .select.small select { font-size: 0.82rem; padding: 7px 36px 7px 12px; }
 
   .modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
   .module .name { font-size: 0.82rem; color: var(--asc-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -376,7 +386,7 @@ const STYLE = `
   .guard { display: flex; align-items: center; gap: 16px; }
   .guard-icon {
     width: 44px; height: 44px; border-radius: 50%; flex: none; display: grid; place-items: center;
-    border: 2px solid currentColor; color: var(--asc-cyan); font-size: 1.4rem; font-weight: 300;
+    border: 2px solid currentColor; color: var(--asc-accent); font-size: 1.4rem; font-weight: 300;
   }
   .guard-icon.off { color: var(--asc-faint); }
   .guard-icon.active { color: var(--asc-now); }
@@ -604,9 +614,9 @@ class AtiStratonCard extends HTMLElement {
             </div>
             <div class="tile" id="program-tile">
               <h3>${esc(t.program)}</h3>
-              <select id="program" aria-label="${esc(t.program)}"></select>
-              <div class="level-row" id="level-row">
-                <select class="small" id="level" aria-label="${esc(t.level)}" title="${esc(t.level)} – ${esc(t.levelHint)}"></select>
+              <div class="select"><select id="program" aria-label="${esc(t.program)}"></select></div>
+              <div class="select small" id="level-row">
+                <select id="level" aria-label="${esc(t.level)}" title="${esc(t.level)} – ${esc(t.levelHint)}"></select>
               </div>
             </div>
             <div class="modules" id="modules"></div>
@@ -970,17 +980,17 @@ class AtiStratonCard extends HTMLElement {
     let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t.dailyCurve)}">
       <defs>
         <linearGradient id="fill-${uid}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#7b8ff0" stop-opacity="0.85"/>
-          <stop offset="1" stop-color="#7b6fe0" stop-opacity="0.08"/>
+          <stop offset="0" style="stop-color:var(--asc-violet);stop-opacity:0.7"/>
+          <stop offset="1" style="stop-color:var(--asc-violet);stop-opacity:0.05"/>
         </linearGradient>
         <linearGradient id="stroke-${uid}" gradientUnits="userSpaceOnUse" x1="${m.l}" y1="0" x2="${W - m.r}" y2="0">
-          <stop offset="0" stop-color="#7fe3e6"/>
-          <stop offset="1" stop-color="#a383f2"/>
+          <stop offset="0" style="stop-color:var(--asc-cyan)"/>
+          <stop offset="1" style="stop-color:var(--asc-violet)"/>
         </linearGradient>
       </defs>`;
 
     for (const v of [25, 50, 75, 100]) {
-      svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(255,255,255,0.09)"/>`;
+      svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--asc-tile-border)"/>`;
       svg += `<text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`;
     }
     for (const s of ticks) {
@@ -989,7 +999,7 @@ class AtiStratonCard extends HTMLElement {
 
     svg += `<path d="${areaPath}" fill="url(#fill-${uid})" opacity="${this._preview !== null ? 0.6 : 1}"/>`;
     if (curOrig) {
-      svg += `<path d="${curOrig.path(X, Y)}" fill="none" stroke="rgba(234,244,248,0.55)" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+      svg += `<path d="${curOrig.path(X, Y)}" fill="none" style="stroke:var(--asc-muted)" stroke-opacity="0.8" stroke-width="1.5" stroke-dasharray="5 5"/>`;
     }
     svg += `<path d="${linePath}" fill="none" stroke="url(#stroke-${uid})" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
 
@@ -1000,7 +1010,7 @@ class AtiStratonCard extends HTMLElement {
       const fill = n.hex || NEUTRAL;
       const tip = `${hhmm(n.t)} · ${this._fmt(current[i][1])} %${n.color ? ` · ${n.color}` : ""}`;
       svg += `<circle class="node" cx="${X(n.t).toFixed(1)}" cy="${Y(current[i][1]).toFixed(1)}" r="5"
-        fill="${esc(fill)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"><title>${esc(tip)}</title></circle>`;
+        fill="${esc(fill)}" style="stroke:var(--card-background-color, #fff)" stroke-width="1.5"><title>${esc(tip)}</title></circle>`;
     });
 
     // Markierung „Jetzt“. Die Zahl stammt vom Gerätesensor; nur während der
@@ -1012,7 +1022,7 @@ class AtiStratonCard extends HTMLElement {
     } %`;
     if (now >= t0 && now <= t1) {
       svg += this._marker(X(now), Y(curNow.value(now)), label, {
-        color: "#f2846e",
+        color: "var(--asc-now)",
         top: Y(100),
         base,
         W,
@@ -1024,7 +1034,7 @@ class AtiStratonCard extends HTMLElement {
       const s = t0 + ((this._hoverX - m.l) / pw) * (t1 - t0);
       const v = interpolate(current, s);
       svg += this._marker(X(s), Y(curNow.value(s)), `${hhmm(s)} · ${this._fmt(v)} %`, {
-        color: "#eaf4f8",
+        color: "var(--asc-text)",
         top: Y(100),
         base,
         W,
@@ -1068,11 +1078,11 @@ class AtiStratonCard extends HTMLElement {
     let by = y - boxH - 14;
     if (by < 0) by = y + 14;
     return `
-      <line x1="${x}" x2="${x}" y1="${top}" y2="${base}" stroke="${color}" stroke-opacity="0.75"
+      <line x1="${x}" x2="${x}" y1="${top}" y2="${base}" style="stroke:${color}" stroke-opacity="0.75"
         stroke-width="1.5" ${dashed ? 'stroke-dasharray="2 4"' : ""}/>
-      <circle cx="${x}" cy="${y}" r="7" fill="${color}" stroke="#fff" stroke-width="2"/>
+      <circle cx="${x}" cy="${y}" r="7" style="fill:${color};stroke:var(--card-background-color, #fff)" stroke-width="2"/>
       <rect x="${bx}" y="${by}" width="${boxW}" height="${boxH}" rx="8"
-        fill="rgba(16,36,56,0.88)" stroke="rgba(255,255,255,0.18)"/>
+        style="fill:var(--asc-tooltip);stroke:var(--asc-tile-border)"/>
       <text x="${bx + boxW / 2}" y="${by + 19}" text-anchor="middle"
         style="fill:${color};font-weight:600;font-size:12px">${esc(label)}</text>`;
   }

@@ -324,6 +324,9 @@ full_day: false               # immer 00:00–24:00 statt des Lichtfensters
 Die Entitäten findet die Karte über das Gerät selbst; umbenannte Entitäts-IDs
 stören nicht.
 
+Hintergrund, Rahmen, Transparenz und Farben übernimmt die Karte vom aktiven
+Theme, im hellen wie im dunklen Modus.
+
 | Element | Bedeutung |
 |---|---|
 | **Gestrichelte Kurve** | Die Form des Programms auf 100 % normiert — der Bezug, auf den der Intensitätsregler wirkt |

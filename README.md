@@ -315,6 +315,9 @@ full_day: false               # always 00:00–24:00 instead of the light window
 The card finds its entities through the device itself; renamed entity IDs do
 not matter.
 
+Background, border, transparency and colours come from the active theme, in
+light and dark mode alike.
+
 | Element | Meaning |
 |---|---|
 | **Dashed curve** | The program's shape normalised to 100 % — the reference the intensity slider acts on |
